@@ -50,7 +50,6 @@ func NewBNode(bType, nKeys int) BNode {
 }
 
 func (node BNode) bType() uint16 {
-	// This is trying to interpret the first 2 bytes of node.data to get the node type
 	return binary.LittleEndian.Uint16(node.data[0:2])
 }
 
