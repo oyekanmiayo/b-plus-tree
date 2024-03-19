@@ -37,6 +37,8 @@ const (
 	// so the size of one of each covers the total size
 	BNODE_POINTER_SIZE = 8
 	BNODE_OFFSET_SIZE  = 2
+
+	MAX_BTREE_PAGE_SIZE = 4096
 )
 
 const (
@@ -96,21 +98,12 @@ func (node BNode) GetPtr(idx uint16) uint64 {
 	return binary.LittleEndian.Uint64(node.data[pos:])
 }
 
-// The offset of the first KV is always zero, so it's not stored in the list
 // offsetPos(node, idx) will fetch the starting point of the offset position for a particular index
 func offsetPos(node BNode, idx uint16) uint16 {
-	return BNODE_HEADER + (BNODE_POINTER_SIZE * BNODE_NKEYS) + (BNODE_OFFSET_SIZE * (idx - 1))
+	return BNODE_HEADER + (BNODE_POINTER_SIZE * BNODE_NKEYS) + (BNODE_OFFSET_SIZE * idx)
 }
 
 func (node BNode) SetOffset(idx, offset uint16) {
-	if idx == 0 && offset == 0 {
-		return
-	}
-
-	if idx == 0 {
-		panic("idx is 0, but offset isn't 0")
-	}
-
 	binary.LittleEndian.PutUint16(node.data[offsetPos(node, idx):], offset)
 }
 
@@ -145,3 +138,9 @@ func (node BNode) GetVal(idx uint16) []byte {
 
 	return node.data[pos+4+kLen:][:vLen]
 }
+
+// search for key
+// if key is present in this btree's range, keep searching until we reach the leaf node that contains that key
+// if key exists, update value in-place
+// if key doesn't exist, insert value at appropriate location
+// if on insert, the page is too big, split into two nodes and upshit the mid key
