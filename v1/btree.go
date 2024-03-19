@@ -108,11 +108,6 @@ func (node BNode) SetOffset(idx, offset uint16) {
 }
 
 func (node BNode) GetOffset(idx uint16) uint16 {
-	// The offset of the first KV is always zero, so it's not stored in the list
-	if idx == 0 {
-		return 0
-	}
-
 	return binary.LittleEndian.Uint16(node.data[offsetPos(node, idx):])
 }
 
