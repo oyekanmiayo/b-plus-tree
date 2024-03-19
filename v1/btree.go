@@ -122,3 +122,26 @@ func (node BNode) GetOffset(idx uint16) uint16 {
 
 	return binary.LittleEndian.Uint16(node.data[offsetPos(node, idx):])
 }
+
+// 16 bits = 2 bytes
+// 1 byte = 8 bits
+func (node BNode) kvPos(idx uint16) uint16 {
+	return BNODE_HEADER + (BNODE_POINTER_SIZE * BNODE_NKEYS) + (BNODE_OFFSET_SIZE * BNODE_NKEYS) + node.GetOffset(idx)
+}
+
+func (node BNode) GetKey(idx uint16) []byte {
+	pos := node.kvPos(idx)
+	kLen := binary.LittleEndian.Uint16(node.data[pos:])
+
+	// + 4 skips the bytes for kLen and vLen
+	// [:kLen] reads from pos+4 up to kLen (non-inclusive)
+	return node.data[pos+4:][:kLen]
+}
+
+func (node BNode) GetVal(idx uint16) []byte {
+	pos := node.kvPos(idx)
+	kLen := binary.LittleEndian.Uint16(node.data[pos:])
+	vLen := binary.LittleEndian.Uint16(node.data[pos+2:])
+
+	return node.data[pos+4+kLen:][:vLen]
+}
