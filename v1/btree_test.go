@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"testing"
 )
 
@@ -71,14 +72,14 @@ func TestBNode_SetOffset_GetOffset(t *testing.T) {
 	}
 }
 
-// func TestBNode_GetKey(t *testing.T) {
-// 	node := NewBNode(BNODE_LEAF, 15)
-//
-// 	keyToInsert := make([]byte, 2)
-// 	binary.LittleEndian.PutUint16(keyToInsert, uint16(12))
-//
-// 	idxToInsert := NodeKeyLookup(node, keyToInsert)
-// 	if idxToInsert != uint16(0) {
-// 		t.Errorf("Wrong index returned. Expected: %d, Got: %d.", uint16(0), idxToInsert)
-// 	}
-// }
+func TestBNode_GetKey(t *testing.T) {
+	node := NewBNode(BNODE_LEAF, 15)
+
+	keyToInsert := make([]byte, 2)
+	binary.LittleEndian.PutUint16(keyToInsert, uint16(12))
+
+	idxToInsert := NodeKeyLookup(node, keyToInsert)
+	if idxToInsert != uint16(0) {
+		t.Errorf("Wrong index returned. Expected: %d, Got: %d.", uint16(0), idxToInsert)
+	}
+}

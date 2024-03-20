@@ -181,6 +181,14 @@ func NodeKeyLookup(node BNode, key []byte) uint16 {
 
 		nodeCurrKey := node.GetKey(i)
 
+		// if the length of this is 0, then it means kLen was 0
+		// which means there's no key at this index
+		// particularly useful when we want to insert and there's no key available!
+		if len(nodeCurrKey) == 0 {
+			found = i
+			break
+		}
+
 		// a = node's key at current i
 		// b = given key
 		cmp := bytes.Compare(nodeCurrKey, key)
