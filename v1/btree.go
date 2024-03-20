@@ -1,6 +1,9 @@
 package main
 
-import "encoding/binary"
+import (
+	"bytes"
+	"encoding/binary"
+)
 
 /*
 BNode
@@ -60,8 +63,14 @@ type BTree struct {
 // NKeys - number of keys this node can store
 func NewBNode(bType, nKeys int) BNode {
 	nodeInitialSize := BNODE_HEADER + (BNODE_POINTER_SIZE * nKeys) + (BNODE_OFFSET_SIZE * nKeys)
+	// MAX_BTREE_PAGE_SIZE is the maximum size a page (node) should be
+	// we should verify that the number of keys to be inserted leaves space for at least one key value pair
+	if nodeInitialSize >= MAX_BTREE_PAGE_SIZE {
+		panic("This node can't store any more data.")
+	}
+
 	node := BNode{
-		data: make([]byte, nodeInitialSize),
+		data: make([]byte, MAX_BTREE_PAGE_SIZE),
 	}
 
 	// node type
@@ -100,7 +109,7 @@ func (node BNode) GetPtr(idx uint16) uint64 {
 
 // offsetPos(node, idx) will fetch the starting point of the offset position for a particular index
 func offsetPos(node BNode, idx uint16) uint16 {
-	return BNODE_HEADER + (BNODE_POINTER_SIZE * BNODE_NKEYS) + (BNODE_OFFSET_SIZE * idx)
+	return BNODE_HEADER + (BNODE_POINTER_SIZE * node.NKeys()) + (BNODE_OFFSET_SIZE * idx)
 }
 
 func (node BNode) SetOffset(idx, offset uint16) {
@@ -114,7 +123,7 @@ func (node BNode) GetOffset(idx uint16) uint16 {
 // 16 bits = 2 bytes
 // 1 byte = 8 bits
 func (node BNode) kvPos(idx uint16) uint16 {
-	return BNODE_HEADER + (BNODE_POINTER_SIZE * BNODE_NKEYS) + (BNODE_OFFSET_SIZE * BNODE_NKEYS) + node.GetOffset(idx)
+	return BNODE_HEADER + (BNODE_POINTER_SIZE * node.NKeys()) + (BNODE_OFFSET_SIZE * node.NKeys()) + node.GetOffset(idx)
 }
 
 func (node BNode) GetKey(idx uint16) []byte {
@@ -139,3 +148,45 @@ func (node BNode) GetVal(idx uint16) []byte {
 // if key exists, update value in-place
 // if key doesn't exist, insert value at appropriate location
 // if on insert, the page is too big, split into two nodes and upshit the mid key
+
+func NodeKeyLookup(node BNode, key []byte) uint16 {
+
+	// Get number of keys in the node
+	nKeys := node.NKeys()
+
+	// not worried about setting another initial value for found
+	// because they MUST BE a valid node. The given key has to fall within the range somehow.
+	found := uint16(0)
+
+	for i := uint16(0); i < nKeys; i++ {
+
+		// a = node's key at current i
+		// b = given key
+		cmp := bytes.Compare(node.GetKey(i), key)
+
+		// if the current node's key < key_to_insert,
+		// then insertion point is one index ahead
+		if cmp < 0 {
+			found = i + 1
+		}
+
+		// if the current node's key == key_to_insert
+		// then we just need to update the value associated with the key
+		if cmp == 0 {
+			found = i
+			break
+		}
+
+		// if current node's key > key_to_insert
+		// there are two possibilities here
+		// - if this is the first key, then it means the key we need to insert will be
+		//   inserted at 0. This has been handled by found := uint16(0)
+		// - if this isn't the first key in the node, then we should have already found an
+		//   insertion point.
+		if cmp > 0 {
+			break
+		}
+	}
+
+	return found
+}
