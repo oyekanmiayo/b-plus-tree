@@ -31,9 +31,12 @@ BNode consists of:
 */
 
 const (
-	BNODE_TYPE   = 2
-	BNODE_NKEYS  = 2
-	BNODE_HEADER = BNODE_TYPE + BNODE_NKEYS
+	BNODE_TYPE = 2
+	// BNODE_NKEYS total number of keys a node can store
+	BNODE_NKEYS = 2
+	// BNODE_CURR_KEYS number of keys this node has store now
+	BNODE_CURR_KEYS
+	BNODE_HEADER = BNODE_TYPE + BNODE_NKEYS + BNODE_CURR_KEYS
 
 	// BNODE_POINTER_SIZE and BNODE_OFFSET_SIZE represent the size of one pointer
 	// BNODE_HEADER is different because there's only one type and nkeys
@@ -143,6 +146,18 @@ func (node BNode) GetVal(idx uint16) []byte {
 	return node.data[pos+4+kLen:][:vLen]
 }
 
+func InsertKVManually(node BNode, idx uint16, key, val []byte) {
+	pos := node.kvPos(idx)
+
+	// Add kLen and vLen
+	binary.LittleEndian.PutUint16(node.data[pos:], uint16(len(key)))
+	binary.LittleEndian.PutUint16(node.data[pos:], uint16(len(val)))
+
+	// Add key and val
+	copy(node.data[pos+4:], key)
+	copy(node.data[pos+4+uint16(len(key)):], val)
+}
+
 // search for key
 // if key is present in this btree's range, keep searching until we reach the leaf node that contains that key
 // if key exists, update value in-place
@@ -160,21 +175,19 @@ func NodeKeyLookup(node BNode, key []byte) uint16 {
 
 	for i := uint16(0); i < nKeys; i++ {
 
+		nodeCurrKey := node.GetKey(i)
+
 		// a = node's key at current i
 		// b = given key
-		cmp := bytes.Compare(node.GetKey(i), key)
+		cmp := bytes.Compare(nodeCurrKey, key)
 
 		// if the current node's key < key_to_insert,
 		// then insertion point is one index ahead
-		if cmp < 0 {
-			found = i + 1
-		}
-
 		// if the current node's key == key_to_insert
 		// then we just need to update the value associated with the key
-		if cmp == 0 {
+		// we pass the index anyway. Whether to insert or update will be decided by the caller.
+		if cmp <= 0 {
 			found = i
-			break
 		}
 
 		// if current node's key > key_to_insert
@@ -182,8 +195,8 @@ func NodeKeyLookup(node BNode, key []byte) uint16 {
 		// - if this is the first key, then it means the key we need to insert will be
 		//   inserted at 0. This has been handled by found := uint16(0)
 		// - if this isn't the first key in the node, then we should have already found an
-		//   insertion point.
-		if cmp > 0 {
+		//   insertion/update point.
+		if cmp >= 0 {
 			break
 		}
 	}
