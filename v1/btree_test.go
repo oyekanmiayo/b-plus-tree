@@ -8,6 +8,7 @@ func TestNewBNode(t *testing.T) {
 	node := NewBNode(BNODE_LEAF, 5)
 	typeUInt16 := node.BType()
 	nKeysUInt16 := node.NKeys()
+	currKeysUInt16 := node.CurrKeys()
 
 	if typeUInt16 != uint16(BNODE_LEAF) {
 		t.Errorf("Node type mismatch. Expected: %d, Got: %d", uint16(BNODE_LEAF), typeUInt16)
@@ -15,6 +16,10 @@ func TestNewBNode(t *testing.T) {
 
 	if nKeysUInt16 != uint16(5) {
 		t.Errorf("Node NKeys mismatch. Expected: %d, Got: %d", uint16(5), nKeysUInt16)
+	}
+
+	if currKeysUInt16 != uint16(0) {
+		t.Errorf("Node CurrKeys mismatch. Expected: %d, Got: %d", uint16(0), currKeysUInt16)
 	}
 
 	node.SetPtr(0, uint64(10))

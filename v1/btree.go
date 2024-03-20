@@ -93,6 +93,10 @@ func (node BNode) NKeys() uint16 {
 	return binary.LittleEndian.Uint16(node.data[2:4])
 }
 
+func (node BNode) CurrKeys() uint16 {
+	return binary.LittleEndian.Uint16(node.data[4:6])
+}
+
 func (node BNode) SetPtr(idx uint16, val uint64) {
 	pos := BNODE_HEADER + (idx * BNODE_POINTER_SIZE)
 	binary.LittleEndian.PutUint64(node.data[pos:], val)
