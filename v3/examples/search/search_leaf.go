@@ -16,7 +16,6 @@ type Node struct {
 more clearly without the generic `Node` and implict `bool`:
 a leaf node:
 type LeafNode struct {
-	leaf    bool
 	data    []int
 	parent  *InternalNode // Pointer to parent node for easier navigation
 	next    *LeafNode     // Pointer to the next leaf node for range queries
@@ -28,6 +27,8 @@ type InternalNode struct {
 	children []*InternalNode // For internal nodes, children are other internal nodes
 	parent   *InternalNode   // Pointer to parent node for easier navigation
 }
+
+NB: this example does not include sibling or parent pointers.
 */
 
 func (n *Node) search(key int) (*Node, int) {
