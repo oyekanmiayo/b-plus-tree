@@ -61,25 +61,57 @@ func binarySearch(arr []int, key int) int {
 
 func BasicSearchLeaf(key int) {
 	root := &Node{
+		leaf: false,
 		keys: []int{3, 5},
 		children: []*Node{
 			{
-				keys:     []int{2},
-				leaf:     true,
-				data:     []int{1},
-				children: []*Node{},
+				keys: []int{2},
+				leaf: false,
+				data: nil,
+				children: []*Node{
+					{
+						leaf: true,
+						data: []int{1},
+					},
+					{
+						leaf: true,
+						data: []int{2},
+					},
+				},
 			},
 			{
-				keys:     []int{4},
-				leaf:     true,
-				data:     []int{3},
-				children: []*Node{},
+				keys: []int{4},
+				leaf: false,
+				data: nil,
+				children: []*Node{
+					{
+						leaf: true,
+						data: []int{3},
+					},
+					{
+						leaf: true,
+						data: []int{4},
+					},
+				},
 			},
 			{
-				keys:     []int{6, 7},
-				leaf:     true,
-				data:     []int{5, 7},
-				children: []*Node{},
+				keys: []int{6, 7},
+				leaf: false,
+				data: nil,
+				children: []*Node{
+					{
+						leaf: true,
+						data: []int{5},
+					},
+					{
+						leaf: true,
+						data: []int{6},
+					},
+					{
+						leaf: true,
+						data: []int{7, 8},
+					},
+				},
 			},
 		},
 	}

@@ -19,6 +19,9 @@ type cell struct {
 // to binary search for data inside a page's cell
 
 func (c *cell) search(offset int) *cell {
+	// alternatively more idiomatically: slices.BinarySearch(c.page.cells, key)
+	// this is here for reference/clarity
+
 	low, high := 0, len(c.page.cells)-1
 	for low <= high {
 		mid := low + (high-low)/2

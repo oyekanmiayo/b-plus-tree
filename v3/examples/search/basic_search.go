@@ -15,6 +15,9 @@ func (n *node) search(key int) *node {
 		return n
 	}
 
+	// alternatively more idiomatically: slices.BinarySearch(m.children, key)
+	// this is here for reference/clarity
+
 	low, high := 0, len(n.keys)-1
 	for low <= high {
 		mid := low + (high-low)/2
