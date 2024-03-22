@@ -2,61 +2,65 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 )
 
-type Node struct {
+type BNode struct {
+	kind     NodeType
 	keys     []int
-	children []*Node
-	leaf     bool
-	data     []int
+	children []*BNode
 }
 
-// see: `basic search of how/why this works`
-func (n *Node) search(key int) (*Node, int, error) {
-	idx, found := slices.BinarySearch(n.keys, key)
-	if n.leaf {
-		if !found {
-			return nil, 0, errors.New("key not found")
-		} else {
-			return n, idx, nil
-		}
+func (n *BNode) insert(key int) error {
+	n.keys = append(n.keys, key)
+
+	if len(n.keys) <= MAX_DEGREE-1 {
+		// does the target node have room? if yes do nothing
+		return nil
+	} else {
+		// is it a leaf node? the bound: len(n.pointers) < n + 1
+		// is it an internal node? the bound is len(n.keys) < n
+		// where n >= 2, n == degree == occupancy == fanout
+		n.split(len(n.keys) / 2)
 	}
-
-	return n.children[idx].search(key)
-}
-
-func (n *Node) insert(key int) error {
-	// locate target leaf
-	// append value
-
-	// case 1
-	// does the target node have room? if yes do nothing
-	// case 2
-	// is it a leaf node? the bound: len(n.pointers) < n + 1
-	// is it an internal node? the bound is len(n.keys) < n
-	// where n >= 2, n == max degree == occupancy == fanout
 
 	return nil
 }
 
+func (n *BNode) split(midIdx int) error {
+	// handle two cases:
+	// one for an internal node split
+	splitPoint := n.keys[midIdx]
+	leftKeys := n.keys[:midIdx]
+	rightKeys := n.keys[midIdx+1:]
+
+	n.keys = []int{splitPoint}
+
+	//we must now check MIN_KEYS otherwise our tree breaks down
+	leftNode := &BNode{kind: LEAF_NODE, keys: leftKeys}
+	rightNode := &BNode{kind: LEAF_NODE, keys: rightKeys}
+	n.children = []*BNode{leftNode, rightNode}
+
+	// TODO: leaf node split see insert_leaf.go
+	return nil
+}
+
+// see: c search of how/why this works`
+func (n *BNode) search(key int) (*BNode, int, error) {
+	idx, found := slices.BinarySearch(n.keys, key)
+
+	if found {
+		return n, idx, nil
+	}
+
+	if len(n.children) == 0 {
+		return n, 0, errors.New("key not found or at leaf node")
+	}
+
+	return n.children[idx].search(key)
+}
 func BasicInsertExample() {
-	// our root node is special, we store keys and store pointers to
-	// data records inside it at first, when we split our root for the first time
-	// we 'recurse' 'UP' pushing a new internal node upward, rearranging our pointers
-	// then it 'loses' its borrow leaf capabilities.
-
-	// B-Trees are built in-reverse of a classic binary search tree.
-	// (new internal) ....can add more nodes until full, split, recurse.
-	//   \               /
-	//   (root)
-
-	// splitting:
-	// step one: oh crap I'm a full root node, I need to give away my keys!
-	//  (nil)            (nil)
-	//   \               /
-	//   (root )
-
 	// every node except the root node must respect the inquality:
 	// branching factor - 1 <= num keys < (2 * branching factor) - 1
 	// if this doesn't make sense ignore it. The take away:
@@ -64,7 +68,7 @@ func BasicInsertExample() {
 
 	// step two: it's promotion time, split keys into two halves, if there's only halve,
 	// ie the new node has < MIN_KEYS we push up one-way:
-	// lastly point to data/allocate/move root node's data to a leaf.
+	// lastly point to data/allocate/move root node's data to a node.
 
 	// -- LEAF
 	//  (internal node)  (internal or nil)
@@ -75,9 +79,16 @@ func BasicInsertExample() {
 	// recurse DOWN from root to new internal node(s), check that we're not full
 	// if full, we split again on internal node, allocate a new node(s)
 
-	root := &Node{}
+	root := &BNode{kind: ROOT_NODE}
 
 	for key := 1; key <= 8; key++ {
 		root.insert(key)
+
 	}
+
+	fmt.Println(root.search(2))
+	fmt.Println(root.keys)
+	fmt.Println(root.children[0].keys)
+	fmt.Println(root.children[1].keys)
+
 }
