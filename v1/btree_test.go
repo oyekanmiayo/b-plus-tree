@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"fmt"
 	"testing"
 )
 
@@ -72,14 +73,21 @@ func TestBNode_SetOffset_GetOffset(t *testing.T) {
 	}
 }
 
-func TestBNode_GetKey(t *testing.T) {
+func TestBNode_GetKey_GetVal(t *testing.T) {
 	node := NewBNode(BNODE_LEAF, 15)
 
+	// 12 => "Hello"
 	keyToInsert := make([]byte, 2)
 	binary.LittleEndian.PutUint16(keyToInsert, uint16(12))
+
+	valueToInsert := []byte("Hello")
+	fmt.Printf("Length: %v\n", len(valueToInsert))
 
 	idxToInsert := NodeKeyLookup(node, keyToInsert)
 	if idxToInsert != uint16(0) {
 		t.Errorf("Wrong index returned. Expected: %d, Got: %d.", uint16(0), idxToInsert)
 	}
+
+	InsertKVManually(node, idxToInsert, keyToInsert, valueToInsert)
+
 }
