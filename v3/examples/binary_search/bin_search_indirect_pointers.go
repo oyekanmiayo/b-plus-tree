@@ -5,6 +5,7 @@ import "fmt"
 // TODO/WIP/unfinished
 // remember a page is a contiguous block of memory [..|..|..|] that's say 4KiB.
 // we can arbitrarily decide what's inside this block, remember our header?
+
 type page struct {
 	id     int
 	header []byte
@@ -17,6 +18,17 @@ type cell struct {
 
 // recall our previous example, let's now use indirect pointers
 // to binary search for data inside a page's cell
+
+/*
+NOTE: Remember that there's a cost for every disk access. If we fetch pre-fetch an entire block,
+then searching through the collection of k/v records in that block will take linear access.
+
+This is doubly expensive because each access incurs a seek time, so expensive in two ways:
+1. O(n) complexity
+1. Incurred read seek of the disk head (assumption hdd.)
+
+caveat: there are reasons and cases where sequential scans make sense over using logarithmic access.
+*/
 
 func (c *cell) search(offset int) *cell {
 	// alternatively more idiomatically: slices.BinarySearch(c.page.cells, key)
