@@ -158,7 +158,7 @@ func (node BNode) GetVal(idx uint16) []byte {
 	return node.data[pos+4+kLen:][:vLen]
 }
 
-func InsertKVManually(node BNode, idx uint16, key, val []byte) {
+func InsertKVManually(node *BNode, idx uint16, key, val []byte) {
 	pos := node.kvPos(idx)
 
 	// Add kLen and vLen
@@ -195,6 +195,13 @@ func NodeKeyLookup(node BNode, key []byte) uint16 {
 		// if the length of this is 0, then it means kLen was 0
 		// which means there's no key at this index
 		// particularly useful when we want to insert and there's no key available!
+		// ---
+		// This is problematic if we ever call InsertKVManually apart from this method
+		// Imagine this scenario for a newNode BNode
+		// InsertKVManually(n, uint16(3), []byte{6, 0}, []byte("Hello")) --> We insert "Hello" at key 6
+		// Then we try to insert 9 --> "Hi" using nodeInsert(). Even though 9 > 6,
+		// the idx returned will be 0 in this case!
+		// simple solution is to only call InsertKVManually from within other methods!
 		if len(nodeCurrKey) == 0 {
 			found = i
 			break
@@ -229,18 +236,21 @@ func NodeKeyLookup(node BNode, key []byte) uint16 {
 
 // InsertKVLeaf insert in KV assuming there's no split necessary initially
 // it's a lot easier to just use a new node!
-func InsertKVLeaf(node BNode, idx uint16) {
+func InsertKVLeaf(node, mirrorNode *BNode, idx uint16, key, val []byte) {
 
 	// we don't add a key yet since we assume this insert won't cause an overflow
 	//
 	// mirrorNode := NewBNode(BNODE_LEAF, int(node.NKeys()))
 
 	// copy from 0 to idx
+	MoveRangeBtwNodes(mirrorNode, node, 0, 0, idx)
 	// insert KV
+	InsertKVManually(mirrorNode, idx, key, val)
 	// copy from idx+1 to end
+	MoveRangeBtwNodes(mirrorNode, node, idx+1, idx, node.NKeys()-idx)
 }
 
-func MoveRangeBtwNodes(newNode, oldNode BNode, newIdx, oldIdx, size uint16) {
+func MoveRangeBtwNodes(newNode, oldNode *BNode, newIdx, oldIdx, size uint16) {
 	// There's nothing to do here
 	if size == 0 {
 		return
@@ -269,5 +279,4 @@ func MoveRangeBtwNodes(newNode, oldNode BNode, newIdx, oldIdx, size uint16) {
 	oldKVStart := oldNode.kvPos(oldIdx)
 	oldKVEnd := oldNode.kvPos(oldIdx + size)
 	copy(newNode.data[newNode.kvPos(newIdx):], oldNode.data[oldKVStart:oldKVEnd])
-
 }
