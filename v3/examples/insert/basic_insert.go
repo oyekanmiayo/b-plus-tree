@@ -32,8 +32,12 @@ func (n *BNode) split(midIdx int) error {
 	// handle two cases:
 	// one for an internal node split
 	splitPoint := n.keys[midIdx]
+
+	fmt.Print("split: ")
+	fmt.Println(splitPoint)
+
 	leftKeys := n.keys[:midIdx]
-	rightKeys := n.keys[midIdx+1:]
+	rightKeys := n.keys[midIdx:]
 
 	n.keys = []int{splitPoint}
 
@@ -81,14 +85,18 @@ func BasicInsertExample() {
 
 	root := &BNode{kind: ROOT_NODE}
 
-	for key := 1; key <= 8; key++ {
+	for key := 1; key <= 4; key++ {
 		root.insert(key)
 
 	}
 
-	fmt.Println(root.search(2))
+	fmt.Print("root")
 	fmt.Println(root.keys)
+
+	fmt.Print("child one")
 	fmt.Println(root.children[0].keys)
+
+	fmt.Print("child two")
 	fmt.Println(root.children[1].keys)
 
 }
