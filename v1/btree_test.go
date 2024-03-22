@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"testing"
@@ -89,5 +90,19 @@ func TestBNode_GetKey_GetVal(t *testing.T) {
 	}
 
 	InsertKVManually(node, idxToInsert, keyToInsert, valueToInsert)
+
+	keyResult := node.GetKey(idxToInsert)
+	if bytes.Compare(keyResult, keyToInsert) != 0 {
+		t.Errorf("Wrong key returned. Expected: %d, Got: %d.",
+			keyToInsert,
+			keyResult)
+	}
+
+	valResult := node.GetVal(idxToInsert)
+	if bytes.Compare(valResult, valueToInsert) != 0 {
+		t.Errorf("Wrong value returned. Expected: %d, Got: %d.",
+			valueToInsert,
+			valResult)
+	}
 
 }

@@ -155,7 +155,7 @@ func InsertKVManually(node BNode, idx uint16, key, val []byte) {
 
 	// Add kLen and vLen
 	binary.LittleEndian.PutUint16(node.data[pos:], uint16(len(key)))
-	binary.LittleEndian.PutUint16(node.data[pos:], uint16(len(val)))
+	binary.LittleEndian.PutUint16(node.data[pos+2:], uint16(len(val)))
 
 	// Add key and val
 	copy(node.data[pos+4:], key)
