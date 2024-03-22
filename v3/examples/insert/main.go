@@ -15,5 +15,6 @@ const (
 )
 
 func main() {
-	BasicInsertExample()
+	// BasicInsertExample()
+	BasicInsertLeafExample()
 }
