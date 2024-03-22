@@ -8,10 +8,6 @@ import (
 /*
 BNode
 
-This is the format of the KV pair. Lengths followed by data.
-| klen | vlen | key | val |
-|  2B  |  2B  | ... | ... |
-
 We assume a BNode is a page and the page size is 4KB (4096 bytes)
 */
 type BNode struct {
@@ -28,6 +24,18 @@ type BNode struct {
 BNode consists of:
 | type | nkeys |  pointers  |   offsets  | key-values
 |  2B  |   2B  | nkeys * 8B | nkeys * 2B | ...
+
+This is the format of the KV pair. Lengths followed by data.
+| klen | vlen | key | val |
+|  2B  |  2B  | ... | ... |
+
+- type: The type of the node. BNODE_NODE or BNODE_LEAF.
+- nkeys: The number of keys this node can store.
+- pointers: pointers to children nodes. Used only in BNODE_NODE.
+- offsets: for a given idx, it tells where to read the key and val for that index from
+	- only used in BNODE_LEAF
+- key-values: variable-length keys and values
+
 */
 
 const (
@@ -160,14 +168,17 @@ func InsertKVManually(node BNode, idx uint16, key, val []byte) {
 	// Add key and val
 	copy(node.data[pos+4:], key)
 	copy(node.data[pos+4+uint16(len(key)):], val)
+
+	// set new offset for next idx
+	// 4 for the kLen and vLen
+	node.SetOffset(idx+1, node.GetOffset(idx)+4+uint16(len(key)+len(val)))
 }
 
-// search for key
+// NodeKeyLookup search for key
 // if key is present in this btree's range, keep searching until we reach the leaf node that contains that key
 // if key exists, update value in-place
 // if key doesn't exist, insert value at appropriate location
 // if on insert, the page is too big, split into two nodes and upshit the mid key
-
 func NodeKeyLookup(node BNode, key []byte) uint16 {
 
 	// Get number of keys in the node
@@ -214,4 +225,49 @@ func NodeKeyLookup(node BNode, key []byte) uint16 {
 	}
 
 	return found
+}
+
+// InsertKVLeaf insert in KV assuming there's no split necessary initially
+// it's a lot easier to just use a new node!
+func InsertKVLeaf(node BNode, idx uint16) {
+
+	// we don't add a key yet since we assume this insert won't cause an overflow
+	//
+	// mirrorNode := NewBNode(BNODE_LEAF, int(node.NKeys()))
+
+	// copy from 0 to idx
+	// insert KV
+	// copy from idx+1 to end
+}
+
+func MoveRangeBtwNodes(newNode, oldNode BNode, newIdx, oldIdx, size uint16) {
+	// There's nothing to do here
+	if size == 0 {
+		return
+	}
+
+	// move pointers
+	for i := uint16(0); i < size; i++ {
+		newNode.SetPtr(newIdx+i, oldNode.GetPtr(oldIdx+i))
+	}
+
+	// move offsets
+	newOffsetBegin := newNode.GetOffset(newIdx)
+	oldOffsetBegin := oldNode.GetOffset(oldIdx)
+	for i := uint16(0); i < size; i++ {
+		// size of offsets up to the current index from oldOffsetBegin
+		sizeOfKVUpToCurrIdx := oldNode.GetOffset(oldIdx+i) - oldOffsetBegin
+
+		// This was confusing initially, but this is precisely what we want
+		// at each idx, we want sizeOfKVUpToCurrIdx to increase because the offset of the current
+		// idx must be further that the past idx
+		offset := newOffsetBegin + sizeOfKVUpToCurrIdx
+		newNode.SetOffset(newIdx+i, offset)
+	}
+
+	// move KV
+	oldKVStart := oldNode.kvPos(oldIdx)
+	oldKVEnd := oldNode.kvPos(oldIdx + size)
+	copy(newNode.data[newNode.kvPos(newIdx):], oldNode.data[oldKVStart:oldKVEnd])
+
 }

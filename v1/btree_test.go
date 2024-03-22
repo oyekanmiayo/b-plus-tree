@@ -58,20 +58,40 @@ func TestBNode_SetPtr_GetPtr(t *testing.T) {
 }
 
 func TestBNode_SetOffset_GetOffset(t *testing.T) {
-	node := NewBNode(BNODE_NODE, 5)
 
-	// Test that the first offset is always 0
-	node.SetOffset(0, 0)
-	offset0 := node.GetOffset(0)
-	if offset0 != uint16(0) {
-		t.Errorf("Node Offset mismatch at idx %d. Expected: %d, Got: %d.", 0, uint64(0), offset0)
+	var testCases = []struct {
+		indices     []uint16
+		offsets     []uint16
+		description string
+	}{
+		{
+			[]uint16{uint16(0), uint16(1)},
+			[]uint16{uint16(0), uint16(20)},
+			"",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			node := NewBNode(BNODE_NODE, 5)
+
+			offSize := len(tc.offsets)
+			indexSize := len(tc.indices)
+
+			if offSize != indexSize {
+				t.Errorf("Offset and Index mismatch. Offset Size: %d, Index Size: %d.", offSize, indexSize)
+			}
+
+			for i := 0; i < offSize; i++ {
+				node.SetOffset(tc.indices[i], tc.offsets[i])
+				currOffset := node.GetOffset(tc.indices[i])
+				if currOffset != tc.offsets[i] {
+					t.Errorf("Node Offset mismatch at idx %d. Expected: %d, Got: %d.", 0, tc.offsets[i], currOffset)
+				}
+
+			}
+		})
 	}
 
-	node.SetOffset(1, 20)
-	offset20 := node.GetOffset(1)
-	if offset20 != uint16(20) {
-		t.Errorf("Node Offset mismatch at idx %d. Expected: %d, Got: %d.", 0, uint64(20), offset20)
-	}
 }
 
 func TestBNode_GetKey_GetVal(t *testing.T) {
@@ -79,7 +99,7 @@ func TestBNode_GetKey_GetVal(t *testing.T) {
 
 	// 12 => "Hello"
 	keyToInsert := make([]byte, 2)
-	binary.LittleEndian.PutUint16(keyToInsert, uint16(12))
+	binary.LittleEndian.PutUint16(keyToInsert, uint16(15))
 
 	valueToInsert := []byte("Hello")
 	fmt.Printf("Length: %v\n", len(valueToInsert))
@@ -105,4 +125,48 @@ func TestBNode_GetKey_GetVal(t *testing.T) {
 			valResult)
 	}
 
+}
+
+func TestMoveRangeBtwNodes(t *testing.T) {
+	testCases := []struct {
+		newNode BNode
+		oldNode BNode
+		newIdx  uint16
+		oldIdx  uint16
+		size    uint16
+		desc    string
+	}{
+		{
+			newNode: NewBNode(BNODE_LEAF, 3),
+			oldNode: func() BNode {
+				n := NewBNode(BNODE_LEAF, 6)
+				InsertKVManually(n, uint16(3), []byte{12, 0}, []byte("Hello"))
+				InsertKVManually(n, uint16(4), []byte{15, 0}, []byte("Ciao"))
+				InsertKVManually(n, uint16(5), []byte{30, 0}, []byte("E le"))
+				return n
+			}(),
+			newIdx: 0,
+			oldIdx: 3,
+			size:   3,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run("", func(t *testing.T) {
+
+			MoveRangeBtwNodes(tc.newNode, tc.oldNode, tc.newIdx, tc.oldIdx, tc.size)
+			for i := uint16(0); i < tc.size; i++ {
+				newIdx := tc.newIdx + i
+				oldIdx := tc.oldIdx + i
+
+				newKey := tc.newNode.GetKey(newIdx)
+				oldKey := tc.oldNode.GetKey(oldIdx)
+				if bytes.Compare(newKey, oldKey) != 0 {
+					t.Errorf("Key mismatch. oldKey @ idx %d: %d, newKey @ idx %d: %d.",
+						oldIdx, oldKey,
+						newIdx, newKey)
+				}
+			}
+
+		})
+	}
 }
