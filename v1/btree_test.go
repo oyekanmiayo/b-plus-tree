@@ -140,14 +140,16 @@ func TestMoveRangeBtwNodes(t *testing.T) {
 			newNode: NewBNode(BNODE_LEAF, 3),
 			oldNode: func() BNode {
 				n := NewBNode(BNODE_LEAF, 6)
-				InsertKVManually(&n, uint16(3), []byte{12, 0}, []byte("Hello"))
-				InsertKVManually(&n, uint16(4), []byte{15, 0}, []byte("Ciao"))
-				InsertKVManually(&n, uint16(5), []byte{30, 0}, []byte("E le"))
+				InsertKVManually(&n, uint16(0), []byte{12, 0}, []byte("Hello"))
+				InsertKVManually(&n, uint16(1), []byte{15, 0}, []byte("Ciao"))
+				InsertKVManually(&n, uint16(2), []byte{30, 0}, []byte("E le"))
+				InsertKVManually(&n, uint16(3), []byte{49, 0}, []byte("So wa"))
+				InsertKVManually(&n, uint16(4), []byte{70, 0}, []byte("E le"))
 				return n
 			}(),
 			newIdx: 0,
 			oldIdx: 3,
-			size:   3,
+			size:   2,
 		},
 	}
 	for _, tc := range testCases {
@@ -184,6 +186,66 @@ func TestInsertKVLeaf(t *testing.T) {
 	}{
 		{
 			node: func() BNode {
+				n := NewBNode(BNODE_LEAF, 3)
+				n.debug()
+				InsertKVManually(&n, uint16(0), []byte{12, 0}, []byte("Hello"))
+				InsertKVManually(&n, uint16(1), []byte{15, 0}, []byte("Ciao"))
+				InsertKVManually(&n, uint16(2), []byte{30, 0}, []byte("E le"))
+				return n
+			}(),
+			mirrorNode: NewBNode(BNODE_LEAF, 4),
+			idx:        0,
+			key:        []byte{5, 0},
+			val:        []byte("Bonjour"),
+		},
+	}
+	for _, tc := range testCases {
+		t.Run("", func(t *testing.T) {
+			InsertKVLeaf(&tc.node, &tc.mirrorNode, tc.idx, tc.key, tc.val)
+
+			mKey := tc.mirrorNode.GetKey(tc.idx)
+			if !bytes.Equal(mKey, tc.key) {
+				t.Errorf("Key mismatch. Expected: %d, Got: %d.", tc.key, mKey)
+			}
+
+			mVal := tc.mirrorNode.GetVal(tc.idx)
+			if !bytes.Equal(mVal, tc.val) {
+				t.Errorf("Value mismatch. Expected: %d, Got: %d.", tc.val, mVal)
+			}
+
+			// Check keys before idx
+			for i := uint16(0); i < tc.idx; i++ {
+				nodeKey := tc.node.GetKey(i)
+				mKey = tc.mirrorNode.GetKey(i)
+				if !bytes.Equal(mKey, nodeKey) {
+					t.Errorf("Key mismatch at idx %d. Expected: %d, Got: %d.", i, nodeKey, mKey)
+				}
+			}
+
+			// Check keys after idx
+			for i := tc.idx; i < tc.node.NKeys(); i++ {
+				nodeKey := tc.node.GetKey(i)
+				mKey = tc.mirrorNode.GetKey(i + 1)
+				if !bytes.Equal(mKey, nodeKey) {
+					t.Errorf("Key mismatch at idx %d for node and %d for mirrorNode. "+
+						"Expected: %d, Got: %d.", i, i+1, nodeKey, mKey)
+				}
+			}
+		})
+	}
+}
+
+func TestUpdateKVLeaf(t *testing.T) {
+	testCases := []struct {
+		node       BNode
+		mirrorNode BNode
+		idx        uint16
+		key        []byte
+		val        []byte
+		desc       string
+	}{
+		{
+			node: func() BNode {
 				n := NewBNode(BNODE_LEAF, 6)
 				InsertKVManually(&n, uint16(0), []byte{12, 0}, []byte("Hello"))
 				InsertKVManually(&n, uint16(1), []byte{15, 0}, []byte("Ciao"))
@@ -192,13 +254,13 @@ func TestInsertKVLeaf(t *testing.T) {
 			}(),
 			mirrorNode: NewBNode(BNODE_LEAF, 6),
 			idx:        0,
-			key:        []byte{5, 0},
-			val:        []byte("Replace"),
+			key:        []byte{12, 0},
+			val:        []byte("Ka bo"),
 		},
 	}
 	for _, tc := range testCases {
 		t.Run("", func(t *testing.T) {
-			InsertKVLeaf(&tc.node, &tc.mirrorNode, tc.idx, tc.key, tc.val)
+			UpdateKVLeaf(&tc.node, &tc.mirrorNode, tc.idx, tc.key, tc.val)
 
 			mKey := tc.mirrorNode.GetKey(tc.idx)
 			if bytes.Compare(mKey, tc.key) != 0 {
@@ -209,15 +271,15 @@ func TestInsertKVLeaf(t *testing.T) {
 			for i := uint16(0); i < tc.idx; i++ {
 				nodeKey := tc.node.GetKey(i)
 				mKey = tc.mirrorNode.GetKey(i)
-				if bytes.Compare(mKey, tc.key) != 0 {
+				if bytes.Compare(mKey, nodeKey) != 0 {
 					t.Errorf("Key mismatch at idx %d. Expected: %d, Got: %d.", i, nodeKey, mKey)
 				}
 			}
 
-			for i := tc.idx; i < tc.node.NKeys(); i++ {
+			for i := tc.idx + 1; i < tc.node.NKeys(); i++ {
 				nodeKey := tc.node.GetKey(i)
-				mKey = tc.mirrorNode.GetKey(tc.idx + 1)
-				if bytes.Compare(mKey, tc.key) != 0 {
+				mKey = tc.mirrorNode.GetKey(i)
+				if bytes.Compare(mKey, nodeKey) != 0 {
 					t.Errorf("Key mismatch at idx %d. Expected: %d, Got: %d.", i, nodeKey, mKey)
 				}
 			}

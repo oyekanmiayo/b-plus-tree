@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 )
 
 /*
@@ -44,7 +45,7 @@ const (
 	BNODE_NKEYS = 2
 	// BNODE_CURR_KEYS number of keys this node has store now
 	BNODE_CURR_KEYS
-	BNODE_HEADER = BNODE_TYPE + BNODE_NKEYS + BNODE_CURR_KEYS
+	BNODE_HEADER = BNODE_TYPE + BNODE_NKEYS
 
 	// BNODE_POINTER_SIZE and BNODE_OFFSET_SIZE represent the size of one pointer
 	// BNODE_HEADER is different because there's only one type and nkeys
@@ -65,7 +66,8 @@ type BTree struct {
 	root uint64
 
 	get func(uint64 uint64) BNode
-	new func(node BNode) // allocate a new node (page)
+	// new func(node BNode) uint64 // allocate a new node (page)
+	new func(parentNode BNode, currNode BNode, currIdx uint16) uint64
 	del func(uint642 uint64)
 }
 
@@ -84,6 +86,8 @@ func NewBNode(bType, nKeys int) BNode {
 		data: make([]byte, MAX_BTREE_PAGE_SIZE),
 	}
 
+	fmt.Printf("node.data's address %p\n", node.data)
+
 	// node type
 	binary.LittleEndian.PutUint16(node.data[0:2], uint16(bType))
 
@@ -91,6 +95,49 @@ func NewBNode(bType, nKeys int) BNode {
 	binary.LittleEndian.PutUint16(node.data[2:4], uint16(nKeys))
 
 	return node
+}
+
+func BTypeStr(i uint16) string {
+	switch i {
+	case BNODE_LEAF:
+		return "BNODE_LEAF"
+	case BNODE_NODE:
+		return "BNODE_NODE"
+	}
+
+	return ""
+}
+
+func (node BNode) debug() {
+	fmt.Println("-----NODE DETAILS-----")
+	// print headers
+	fmt.Printf("Node Type: %s", BTypeStr(node.BType()))
+	// print pointer size
+	fmt.Printf("Idv pointer size: %d\n", BNODE_POINTER_SIZE)
+	fmt.Println()
+	fmt.Println("-----Pointer Details-----")
+	// print pointers for each idx
+	for i := uint16(0); i < node.NKeys(); i++ {
+		fmt.Printf("Pointer[%d] = %d\n", i, node.GetPtr(i))
+	}
+	fmt.Println("-----End of Pointer Details-----")
+	fmt.Println()
+	fmt.Println("-----Offset Details-----")
+	// print offset size
+	// print offset for each idx and the kv it refers to
+	fmt.Printf("Idv offset size: %d\n", BNODE_OFFSET_SIZE)
+	fmt.Println()
+	for i := uint16(0); i < node.NKeys(); i++ {
+		fmt.Printf("Offset[%d] = %d\n", i, node.GetOffset(i))
+		fmt.Printf("  Key = %d, Key Addr = %p\n", node.GetKey(i), node.GetKey(i))
+		fmt.Printf("  Value = %s, Val Addr = %p\n", string(node.GetVal(i)), node.GetVal(i))
+		fmt.Println()
+	}
+	fmt.Println("-----End of Offset Details-----")
+	fmt.Println("-----NODE DETAILS-----")
+	fmt.Println()
+	fmt.Println()
+
 }
 
 func (node BNode) BType() uint16 {
@@ -112,7 +159,8 @@ func (node BNode) SetPtr(idx uint16, val uint64) {
 
 func (node BNode) GetPtr(idx uint16) uint64 {
 	if idx >= node.NKeys() {
-		panic("idx >= NKeys")
+		msg := fmt.Sprintf("idx %d >= NKeys %d\n", idx, node.NKeys())
+		panic(msg)
 	}
 
 	// this gets us to the starting point of the bytes for this pointer
@@ -128,6 +176,9 @@ func offsetPos(node BNode, idx uint16) uint16 {
 }
 
 func (node BNode) SetOffset(idx, offset uint16) {
+	if idx >= node.NKeys() {
+		return
+	}
 	binary.LittleEndian.PutUint16(node.data[offsetPos(node, idx):], offset)
 }
 
@@ -144,10 +195,12 @@ func (node BNode) kvPos(idx uint16) uint16 {
 func (node BNode) GetKey(idx uint16) []byte {
 	pos := node.kvPos(idx)
 	kLen := binary.LittleEndian.Uint16(node.data[pos:])
+	key := node.data[pos+4:][:kLen]
+	// fmt.Printf("idx %d, pos %d, kLen %d, key %d, address %p\n", idx, pos, kLen, key, key)
 
 	// + 4 skips the bytes for kLen and vLen
 	// [:kLen] reads from pos+4 up to kLen (non-inclusive)
-	return node.data[pos+4:][:kLen]
+	return key
 }
 
 func (node BNode) GetVal(idx uint16) []byte {
@@ -159,19 +212,56 @@ func (node BNode) GetVal(idx uint16) []byte {
 }
 
 func InsertKVManually(node *BNode, idx uint16, key, val []byte) {
+	if idx >= node.NKeys() {
+		msg := fmt.Sprintf("InsertKVManually is trying to insert in an illegal node. Make the node bigger?")
+		panic(msg)
+	}
+
 	pos := node.kvPos(idx)
+	if idx > 0 {
+		prevPos := node.kvPos(idx - 1)
+		if prevPos == pos {
+			msg := fmt.Sprintf("Insert at prev idx %d\n", idx-1)
+			panic(msg)
+		}
+	}
+
+	fmt.Printf("pos: %d\n", pos)
+
+	// for i := uint16(0); i < uint16(6); i++ {
+	// 	node.GetKey(i)
+	// }
+	//
+	// fmt.Println("<------------------------>")
 
 	// Add kLen and vLen
-	binary.LittleEndian.PutUint16(node.data[pos:], uint16(len(key)))
-	binary.LittleEndian.PutUint16(node.data[pos+2:], uint16(len(val)))
+	kLen := uint16(len(key))
+	vLen := uint16(len(val))
+	binary.LittleEndian.PutUint16(node.data[pos:pos+2], kLen)
+	binary.LittleEndian.PutUint16(node.data[pos+2:pos+4], vLen)
+
+	node.debug()
+
+	// for i := uint16(0); i < uint16(6); i++ {
+	// 	node.GetKey(i)
+	// }
+	//
+	// fmt.Println("<------------------------>")
 
 	// Add key and val
-	copy(node.data[pos+4:], key)
-	copy(node.data[pos+4+uint16(len(key)):], val)
+	copy(node.data[pos+4:][:kLen], key)
+	copy(node.data[pos+4+kLen:][:vLen], val)
+
+	node.debug()
+
+	// for i := uint16(0); i < uint16(6); i++ {
+	// 	node.GetKey(i)
+	// }
 
 	// set new offset for next idx
 	// 4 for the kLen and vLen
-	node.SetOffset(idx+1, node.GetOffset(idx)+4+uint16(len(key)+len(val)))
+	node.SetOffset(idx+1, node.GetOffset(idx)+4+kLen+vLen)
+	node.debug()
 }
 
 // NodeKeyLookup search for key
@@ -243,11 +333,25 @@ func InsertKVLeaf(node, mirrorNode *BNode, idx uint16, key, val []byte) {
 	// mirrorNode := NewBNode(BNODE_LEAF, int(node.NKeys()))
 
 	// copy from 0 to idx
-	MoveRangeBtwNodes(mirrorNode, node, 0, 0, idx)
+	// MoveRangeBtwNodes(mirrorNode, node, 0, 0, idx)
 	// insert KV
 	InsertKVManually(mirrorNode, idx, key, val)
-	// copy from idx+1 to end
+	mirrorNode.debug()
+	// copy from idx to end
 	MoveRangeBtwNodes(mirrorNode, node, idx+1, idx, node.NKeys()-idx)
+	mirrorNode.debug()
+}
+
+// UpdateKVLeaf the key already exists, so update the value
+// Not as simple as just update the value in-place.
+// The new value might be bigger or smaller. So, vLen may be different which also changes offset and so on.
+func UpdateKVLeaf(node, mirrorNode *BNode, idx uint16, key, val []byte) {
+	// copy from 0 to idx-1
+	MoveRangeBtwNodes(mirrorNode, node, 0, 0, idx)
+	// insert KV (K@idx)
+	InsertKVManually(mirrorNode, idx, key, val)
+	// copy from idx+1 to end
+	MoveRangeBtwNodes(mirrorNode, node, idx+1, idx+1, node.NKeys()-(idx+1))
 }
 
 func MoveRangeBtwNodes(newNode, oldNode *BNode, newIdx, oldIdx, size uint16) {
@@ -256,27 +360,56 @@ func MoveRangeBtwNodes(newNode, oldNode *BNode, newIdx, oldIdx, size uint16) {
 		return
 	}
 
-	// move pointers
+	for i := uint16(0); i < size; i++ {
+		fmt.Println("k -> GetKey")
+		k := oldNode.GetKey(oldIdx + i)
+		v := oldNode.GetVal(oldIdx + i)
+
+		InsertKVManually(newNode, newIdx+i, k, v)
+		newNode.debug()
+		fmt.Println()
+	}
+
+	// move pointers, if internal node
 	for i := uint16(0); i < size; i++ {
 		newNode.SetPtr(newIdx+i, oldNode.GetPtr(oldIdx+i))
 	}
+}
 
-	// move offsets
-	newOffsetBegin := newNode.GetOffset(newIdx)
-	oldOffsetBegin := oldNode.GetOffset(oldIdx)
-	for i := uint16(0); i < size; i++ {
-		// size of offsets up to the current index from oldOffsetBegin
-		sizeOfKVUpToCurrIdx := oldNode.GetOffset(oldIdx+i) - oldOffsetBegin
+// Store unique 8 byte integer -> data []byte within nodes
+var ptrMap = make(map[uint64][]byte)
 
-		// This was confusing initially, but this is precisely what we want
-		// at each idx, we want sizeOfKVUpToCurrIdx to increase because the offset of the current
-		// idx must be further that the past idx
-		offset := newOffsetBegin + sizeOfKVUpToCurrIdx
-		newNode.SetOffset(newIdx+i, offset)
+func (tree *BTree) insert(node BNode, key, val []byte) BNode {
+
+	idxToInsertOrUpdate := NodeKeyLookup(node, key)
+
+	// assuming no overflow
+	mirrorNode := NewBNode(0, int(node.NKeys()))
+
+	switch node.BType() {
+	case BNODE_LEAF:
+		if bytes.Equal(key, node.GetKey(idxToInsertOrUpdate)) {
+			// the value
+			UpdateKVLeaf(&node, &mirrorNode, idxToInsertOrUpdate, key, val)
+		} else {
+			InsertKVLeaf(&node, &mirrorNode, idxToInsertOrUpdate, key, val)
+		}
+	case BNODE_NODE:
+	default:
+		panic("illegal node type")
 	}
 
-	// move KV
-	oldKVStart := oldNode.kvPos(oldIdx)
-	oldKVEnd := oldNode.kvPos(oldIdx + size)
-	copy(newNode.data[newNode.kvPos(newIdx):], oldNode.data[oldKVStart:oldKVEnd])
+	return mirrorNode
 }
+
+/*
+TODO
+
+- implement tree insert and split
+- implement tree deletion and merge
+
+- if i'm moving ranges and the kLen at a particular index is 0, i want to ignore it!
+- store current Keys to make life easier!
+
+fin
+*/
