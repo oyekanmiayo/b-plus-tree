@@ -25,15 +25,18 @@ func (t *BPlusTree) Delete(key int) error {
 		// find leaf node to delete
 		n, _, err := t.root.search(key)
 		if err == nil {
-			return n.delete(key)
+			return n.delete(t, key)
 		}
 
 		return errors.New("key not in tree")
 	}
 }
 
-func (n *Node) delete(key int) error {
-	return nil
+func (n *Node) delete(t *BPlusTree, key int) error {
+	if err := n.mergeSiblings(t, key); err == nil {
+		return nil
+	}
+	return errors.New("see: rebalancing.go")
 }
 
 func BasicDelete(key int) {
@@ -111,6 +114,10 @@ func BasicDelete(key int) {
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
 	fmt.Println(tree.root.children[2])
+}
+
+func (n *Node) mergeSiblings(t *BPlusTree, key int) error {
+	return nil
 }
 
 // see: basic search of how/why this works

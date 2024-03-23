@@ -17,4 +17,5 @@ const (
 func main() {
 	// BasicInsertExample()
 	BasicInsertLeafExample()
+	BreadcrumbInsertExample()
 }
