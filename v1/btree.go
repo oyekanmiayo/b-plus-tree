@@ -226,37 +226,15 @@ func InsertKVManually(node *BNode, idx uint16, key, val []byte) {
 		}
 	}
 
-	fmt.Printf("pos: %d\n", pos)
-
-	// for i := uint16(0); i < uint16(6); i++ {
-	// 	node.GetKey(i)
-	// }
-	//
-	// fmt.Println("<------------------------>")
-
 	// Add kLen and vLen
 	kLen := uint16(len(key))
 	vLen := uint16(len(val))
 	binary.LittleEndian.PutUint16(node.data[pos:pos+2], kLen)
 	binary.LittleEndian.PutUint16(node.data[pos+2:pos+4], vLen)
 
-	node.debug()
-
-	// for i := uint16(0); i < uint16(6); i++ {
-	// 	node.GetKey(i)
-	// }
-	//
-	// fmt.Println("<------------------------>")
-
 	// Add key and val
 	copy(node.data[pos+4:][:kLen], key)
 	copy(node.data[pos+4+kLen:][:vLen], val)
-
-	node.debug()
-
-	// for i := uint16(0); i < uint16(6); i++ {
-	// 	node.GetKey(i)
-	// }
 
 	// set new offset for next idx
 	// 4 for the kLen and vLen
@@ -333,7 +311,7 @@ func InsertKVLeaf(node, mirrorNode *BNode, idx uint16, key, val []byte) {
 	// mirrorNode := NewBNode(BNODE_LEAF, int(node.NKeys()))
 
 	// copy from 0 to idx
-	// MoveRangeBtwNodes(mirrorNode, node, 0, 0, idx)
+	MoveRangeBtwNodes(mirrorNode, node, 0, 0, idx)
 	// insert KV
 	InsertKVManually(mirrorNode, idx, key, val)
 	mirrorNode.debug()
