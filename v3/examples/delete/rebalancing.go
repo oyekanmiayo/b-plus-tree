@@ -36,7 +36,11 @@ func (n *node) delete(t *BTree, key int) error {
 	if err := n.mergeSiblings(t, key); err == nil {
 		return nil
 	}
-	return nil
+	return n.rebalanceDel(key)
+}
+
+func (n *node) rebalanceDel(key int) error {
+	return errors.New("wip")
 }
 
 func RebalancingDelete(key int) {
