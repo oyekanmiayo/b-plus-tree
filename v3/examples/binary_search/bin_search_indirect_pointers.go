@@ -1,8 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
-// TODO/WIP/unfinished
 // remember a page is a contiguous block of memory [..|..|..|] that's say 4KiB.
 // we can arbitrarily decide what's inside this block, remember our header?
 
@@ -31,13 +33,18 @@ caveat: there are reasons and cases where sequential scans make sense over using
 */
 
 func (c *cell) search(offset int) *cell {
-	// alternatively more idiomatically: slices.BinarySearch(c.page.cells, key)
-	// this is here for reference/clarity
+	/*
+		here's how bolt search's the leaf, it's _almost_ the same thing.
+			inodes := p.leafPageElements()
+			index := sort.Search(int(p.count), func(i int) bool {
+				return bytes.Compare(inodes[i].key(), key) != -1
+			})
+	*/
 
 	low, high := 0, len(c.page.cells)-1
 	for low <= high {
 		mid := low + (high-low)/2
-		if c.page.cells[mid] == offset {
+		if bytes.Compare(page.cells[mid], nil) {
 			return n
 		} else if n.keys[mid] < offset {
 			low = mid + 1
