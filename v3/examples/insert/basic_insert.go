@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"slices"
 )
 
 type BNode struct {
@@ -12,6 +10,9 @@ type BNode struct {
 	children []*BNode
 }
 
+// NB: this example is "wrong"
+// it is here to clearly illustrate the 'split' alogrithm using only keys.
+// the actual insertion is in insert.go, but it includes too many spurious details.
 func (n *BNode) insert(key int) error {
 	n.keys = append(n.keys, key)
 
@@ -31,6 +32,8 @@ func (n *BNode) insert(key int) error {
 func (n *BNode) split(midIdx int) error {
 	// handle two cases:
 	// one for an internal node split
+	// edge case, how to handle the root node?
+	// basic aglorithm.
 	splitPoint := n.keys[midIdx]
 
 	fmt.Print("split: ")
@@ -41,29 +44,13 @@ func (n *BNode) split(midIdx int) error {
 
 	n.keys = []int{splitPoint}
 
-	//we must now check MIN_KEYS otherwise our tree breaks down
 	leftNode := &BNode{kind: LEAF_NODE, keys: leftKeys}
 	rightNode := &BNode{kind: LEAF_NODE, keys: rightKeys}
 	n.children = []*BNode{leftNode, rightNode}
 
-	// TODO: leaf node split see insert_leaf.go
 	return nil
 }
 
-// see: c search of how/why this works`
-func (n *BNode) search(key int) (*BNode, int, error) {
-	idx, found := slices.BinarySearch(n.keys, key)
-
-	if found {
-		return n, idx, nil
-	}
-
-	if len(n.children) == 0 {
-		return n, 0, errors.New("key not found or at leaf node")
-	}
-
-	return n.children[idx].search(key)
-}
 func BasicInsertExample() {
 	// every node except the root node must respect the inquality:
 	// branching factor - 1 <= num keys < (2 * branching factor) - 1

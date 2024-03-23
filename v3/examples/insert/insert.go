@@ -6,11 +6,11 @@ import (
 	"slices"
 )
 
-type BTree struct {
+type BPlusTree struct {
 	root *Node
 }
 
-func (t *BTree) Insert(key int) error {
+func (t *BPlusTree) Insert(key int) error {
 	if t.root == nil {
 		t.root = &Node{kind: ROOT_NODE}
 		t.root.insert(t, key)
@@ -27,20 +27,18 @@ func (t *BTree) Insert(key int) error {
 	}
 }
 
-type node struct {
-	kind     NodeType
+type Node struct {
+	kind   NodeType
+	parent *Node
+	// we introduce the first convenience pointer (parent)
+	// considering all the pointer bookeeping we do and not need to traverse
+	// the old fashioned way
 	keys     []int
 	children []*Node
 	data     []int
 }
 
-/*
-Breadcrumbs contain references to the nodes followed from the root and are used
-to backtrack them in reverse when propagating splits or merges.
-*/
-type BTstack []*node
-
-func (n *Node) insert(t *BTree, key int) error {
+func (n *Node) insert(t *BPlusTree, key int) error {
 	if n.kind == ROOT_NODE && len(n.children) == 0 {
 		n.data = append(n.data, key)
 		n.keys = append(n.keys, key)
@@ -61,7 +59,7 @@ func (n *Node) insert(t *BTree, key int) error {
 	return nil
 }
 
-func (n *Node) split(t *BTree, midIdx int) error {
+func (n *Node) split(t *BPlusTree, midIdx int) error {
 	switch n.kind {
 	case LEAF_NODE:
 		splitPoint := n.data[midIdx]
@@ -137,14 +135,16 @@ func (n *Node) split(t *BTree, midIdx int) error {
 	return nil
 }
 
-func BreadcrumbInsertExample() {
-	var tree BTree
+func BasicInsertLeafExample() {
+	var tree BPlusTree
 
 	// NB: keys are values and vice versa
 	for i := 1; i <= 8; i++ {
 		tree.Insert(i)
 	}
 
+	// with the correct storage of elements in our leaf node
+	// let's add elements to resemble the example image
 	fmt.Println()
 	fmt.Println("----built the example 2,3-TREE----")
 	fmt.Println(tree.root)
@@ -153,9 +153,7 @@ func BreadcrumbInsertExample() {
 	fmt.Println(tree.root.children[2])
 }
 
-// Collect breadcrumbs on a stack
-// this a global variable, for there are lots of ways to implement
-// a stack, notably since you're using the callstack anyway, can stuff it in there too.
+// see: basic search of how/why this works
 func (n *Node) search(key int) (*Node, int, error) {
 	idx, found := slices.BinarySearch(n.keys, key)
 

@@ -1,6 +1,10 @@
 package main
 
-// things that are difficult, fragmentation, relocating/maintaining pages.
+// things that are difficult: fragmentation & relocating/maintaining pages/pointers.
+// traditionally, in the array vs linked list debate, cache locality/chorence is a major pro
+// of the array over the linked list -- and this is still somewhat true, however consider this:
+// what happens when you often have multiple threads having access to different elements?
+// what if you can 'pin' the nodes of this linked list in some hot layer depending on your access patterns?
 
 /*A freelist is just a linked list with extra steps. */
 // This becomes more important in the context of concurrency + fragmentation.
