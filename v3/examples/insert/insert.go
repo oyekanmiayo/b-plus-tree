@@ -19,6 +19,7 @@ func (t *BPlusTree) Insert(key int) error {
 	} else {
 		// find leaf node to insert into or root at first
 		n, _, err := t.root.search(key)
+
 		if err == nil {
 			return errors.New("duplicate key/value")
 		}
@@ -53,6 +54,8 @@ func (n *Node) insert(t *BPlusTree, key int) error {
 	if len(n.data) < MAX_DEGREE {
 		return nil
 	} else {
+		fmt.Printf("node overfull now splitting leaf %v", n.data)
+		fmt.Println()
 		n.split(t, len(n.data)/2)
 	}
 
@@ -78,7 +81,7 @@ func (n *Node) split(t *BPlusTree, midIdx int) error {
 		left, right := n.keys[:midIdx], n.keys[midIdx+1:]
 		n.keys = left
 
-		newNode := &Node{kind: INTERNAL_NODE, keys: right}
+		newNode := &Node{kind: INTERNAL_NODE, keys: right, parent: n.parent}
 		n.parent.children = append(n.parent.children, newNode)
 		n.parent.keys = append(n.parent.keys, splitPoint)
 
@@ -150,7 +153,20 @@ func BasicInsertLeafExample() {
 	fmt.Println(tree.root)
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
-	fmt.Println(tree.root.children[2])
+	//fmt.Println(tree.root.children[2])
+}
+
+// public api for fuzzer
+func KeyExists(t *BPlusTree, key int) bool {
+	n, _, err := t.root.search(key)
+
+	if err != nil {
+		return false
+	}
+
+	_, found := slices.BinarySearch(n.data, key)
+
+	return found
 }
 
 // see: basic search of how/why this works
