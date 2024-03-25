@@ -5,26 +5,25 @@ import (
 	"fmt"
 )
 
-type BasicDelBtree struct {
+type BPlusTree struct {
 	root *Node
 }
 
-func (t *BasicDelBtree) Delete(key int) error {
+func (t *BPlusTree) Delete(key int) error {
 	if t.root == nil {
 		return errors.New("empty tree")
 	} else {
-		// find leaf Node to delete
 		n, _, err := t.root.Search(key)
 
 		if err == nil {
-			return n.basicDelete(key)
+			return n.delete(t, key)
 		}
 
 		return errors.New("key not in tree")
 	}
 }
 
-func (n *Node) basicDelete(key int) error {
+func (n *Node) delete(t *BPlusTree, key int) error {
 	for i, v := range n.data {
 		if v == key {
 			n.data = splice(i, n.data)
@@ -38,19 +37,19 @@ func (n *Node) basicDelete(key int) error {
 		}
 	}
 
-	return errors.New("see: merge.go for merges")
-}
-
-func splice(idx int, elems []int) []int {
-	if len(elems) == 1 {
+	if err := n.mergeSiblings(t, key); err == nil {
 		return nil
-	} else {
-		return append(elems[:idx], elems[idx+1:]...)
 	}
+
+	return nil
 }
 
-func BasicDeleteExample() {
-	var tree BasicDelBtree
+func (n *Node) mergeSiblings(t *BPlusTree, key int) error {
+	return nil
+}
+
+func BasicMergeExample() {
+	var tree BPlusTree
 
 	root := &Node{
 		kind: ROOT_NODE,
@@ -79,8 +78,7 @@ func BasicDeleteExample() {
 
 	// delete no cascade
 	fmt.Println(tree.Delete(4))
-
-	// delete simple cascade root
+	// delete simple cascade with root
 	fmt.Println(tree.Delete(3))
 
 	fmt.Println(tree.root)
