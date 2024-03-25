@@ -12,7 +12,7 @@ func (t *BTree) BasicDelete(key int) error {
 	} else {
 		// find leaf Node to delete
 		n, _, err := t.root.SearchDelete(key)
-		fmt.Println(n)
+
 		if err == nil {
 			return n.basicDelete(key)
 		}
@@ -66,15 +66,28 @@ func (n *Node) SearchDelete(key int) (*Node, int, error) {
 }
 
 func BasicDeleteExample(tree *BTree) {
+	/*
+		fmt.Println("---initial tree shape---")
+		fmt.Println(tree.root)
+		fmt.Println(tree.root.children[0])
+		fmt.Println(tree.root.children[1])
+		fmt.Println(tree.root.children[2])
+	*/
 
-	fmt.Println(tree)
-	// delete no cascade
-	fmt.Println(tree.BasicDelete(4))
-
-	// delete simple cascade root
-	fmt.Println(tree.BasicDelete(3))
+	fmt.Println("---delete:4 no cascade---")
+	tree.BasicDelete(4)
 
 	fmt.Println(tree.root)
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
+	fmt.Println(tree.root.children[2])
+	fmt.Println()
+
+	tree.BasicDelete(3)
+	fmt.Println("---delete:3 simple cascade root---")
+	fmt.Println(tree.root)
+	fmt.Println(tree.root.children[0])
+	fmt.Println(tree.root.children[1])
+	fmt.Println("oh no! we now have an orphaned node")
+
 }

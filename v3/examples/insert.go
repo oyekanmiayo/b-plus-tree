@@ -52,8 +52,12 @@ func (n *Node) insert(t *BTree, key int) error {
 	if len(n.data) < MAX_DEGREE {
 		return nil
 	} else {
-		fmt.Printf("node overfull now splitting leaf %v", n.data)
-		fmt.Println()
+
+		/*
+			uncomment to see the splitting per node
+			fmt.Printf("node overfull now splitting leaf %v", n.data)
+			fmt.Println()
+		*/
 		n.split(t, len(n.data)/2)
 	}
 
@@ -151,7 +155,7 @@ func BasicInsertLeafExample() {
 	fmt.Println(tree.root)
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
-	//fmt.Println(tree.root.children[2])
+	fmt.Println(tree.root.children[2])
 }
 
 // public api for fuzzer
