@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 )
 
@@ -41,19 +40,23 @@ func (c *cell) search(offset int) *cell {
 			})
 	*/
 
-	low, high := 0, len(c.page.cells)-1
-	for low <= high {
-		mid := low + (high-low)/2
-		if bytes.Compare(page.cells[mid], nil) {
-			return n
-		} else if n.keys[mid] < offset {
-			low = mid + 1
-		} else {
-			high = mid - 1
+	/*
+		low, high := 0, len(c.page.cells)-1
+		for low <= high {
+			mid := low + (high-low)/2
+			if bytes.Compare(page.cells[mid], nil) {
+				return n
+			} else if n.keys[mid] < offset {
+				low = mid + 1
+			} else {
+				high = mid - 1
+			}
 		}
-	}
 
-	return c.page.cells[mid][low]
+
+		return c.page.cells[mid][low]
+	*/
+	return nil
 }
 
 func BinarySearchPageExample(offset int) {

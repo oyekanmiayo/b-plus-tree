@@ -3,19 +3,16 @@ package main
 import (
 	"errors"
 	"fmt"
+	"slices"
 )
 
-type BasicDelBtree struct {
-	root *Node
-}
-
-func (t *BasicDelBtree) Delete(key int) error {
+func (t *BTree) BasicDelete(key int) error {
 	if t.root == nil {
 		return errors.New("empty tree")
 	} else {
 		// find leaf Node to delete
-		n, _, err := t.root.Search(key)
-
+		n, _, err := t.root.SearchDelete(key)
+		fmt.Println(n)
 		if err == nil {
 			return n.basicDelete(key)
 		}
@@ -49,39 +46,33 @@ func splice(idx int, elems []int) []int {
 	}
 }
 
-func BasicDeleteExample() {
-	var tree BasicDelBtree
+// HELPERS
+func (n *Node) SearchDelete(key int) (*Node, int, error) {
+	idx, found := slices.BinarySearch(n.keys, key)
 
-	root := &Node{
-		kind: ROOT_NODE,
-		keys: []int{2, 3}}
-
-	tree.root = root
-
-	// scaffolding..
-	root.children = []*Node{
-		{
-			kind:   LEAF_NODE,
-			data:   []int{1},
-			parent: root,
-		},
-		{
-			kind:   LEAF_NODE,
-			data:   []int{2},
-			parent: root,
-		},
-		{
-			kind:   LEAF_NODE,
-			data:   []int{3, 4},
-			parent: root,
-		},
+	if found {
+		if n.kind == LEAF_NODE {
+			return n, idx, nil
+		} else {
+			return n.children[idx+1].SearchDelete(key)
+		}
 	}
 
+	if len(n.children) == 0 {
+		return n, 0, nil
+	}
+
+	return n.children[idx].SearchDelete(key)
+}
+
+func BasicDeleteExample(tree *BTree) {
+
+	fmt.Println(tree)
 	// delete no cascade
-	fmt.Println(tree.Delete(4))
+	fmt.Println(tree.BasicDelete(4))
 
 	// delete simple cascade root
-	fmt.Println(tree.Delete(3))
+	fmt.Println(tree.BasicDelete(3))
 
 	fmt.Println(tree.root)
 	fmt.Println(tree.root.children[0])

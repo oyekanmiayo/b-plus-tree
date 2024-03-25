@@ -6,28 +6,7 @@ import (
 	"slices"
 )
 
-type BPlusTree struct {
-	root *Node
-}
-
-func (t *BPlusTree) Insert(key int) error {
-	if t.root == nil {
-		t.root = &Node{kind: ROOT_NODE}
-		t.root.insert(t, key)
-
-		return nil
-	} else {
-		// find leaf node to insert into or root at first
-		n, _, err := t.root.search(key)
-
-		if err == nil {
-			return errors.New("duplicate key/value")
-		}
-
-		return n.insert(t, key)
-	}
-}
-
+/*
 type Node struct {
 	kind   NodeType
 	parent *Node
@@ -38,8 +17,27 @@ type Node struct {
 	children []*Node
 	data     []int
 }
+*/
 
-func (n *Node) insert(t *BPlusTree, key int) error {
+func (t *BTree) Insert(key int) error {
+	if t.root == nil {
+		t.root = &Node{kind: ROOT_NODE}
+		t.root.insert(t, key)
+
+		return nil
+	} else {
+		// find leaf node to insert into or root at first
+		n, _, err := t.root.Search(key)
+
+		if err == nil {
+			return errors.New("duplicate key/value")
+		}
+
+		return n.insert(t, key)
+	}
+}
+
+func (n *Node) insert(t *BTree, key int) error {
 	if n.kind == ROOT_NODE && len(n.children) == 0 {
 		n.data = append(n.data, key)
 		n.keys = append(n.keys, key)
@@ -62,7 +60,7 @@ func (n *Node) insert(t *BPlusTree, key int) error {
 	return nil
 }
 
-func (n *Node) split(t *BPlusTree, midIdx int) error {
+func (n *Node) split(t *BTree, midIdx int) error {
 	switch n.kind {
 	case LEAF_NODE:
 		splitPoint := n.data[midIdx]
@@ -139,7 +137,7 @@ func (n *Node) split(t *BPlusTree, midIdx int) error {
 }
 
 func BasicInsertLeafExample() {
-	var tree BPlusTree
+	var tree BTree
 
 	// NB: keys are values and vice versa
 	for i := 1; i <= 8; i++ {
@@ -157,8 +155,8 @@ func BasicInsertLeafExample() {
 }
 
 // public api for fuzzer
-func KeyExists(t *BPlusTree, key int) bool {
-	n, _, err := t.root.search(key)
+func KeyExists(t *BTree, key int) bool {
+	n, _, err := t.root.Search(key)
 
 	if err != nil {
 		return false
@@ -167,24 +165,4 @@ func KeyExists(t *BPlusTree, key int) bool {
 	_, found := slices.BinarySearch(n.data, key)
 
 	return found
-}
-
-// see: basic search of how/why this works
-func (n *Node) search(key int) (*Node, int, error) {
-	idx, found := slices.BinarySearch(n.keys, key)
-
-	if found {
-		if len(n.children) == 0 {
-			return n, idx, nil
-		} else {
-			return nil, 0, errors.ErrUnsupported
-		}
-
-	}
-
-	if len(n.children) == 0 {
-		return n, 0, errors.New("key not found, at leaf containing key")
-	}
-
-	return n.children[idx].search(key)
 }

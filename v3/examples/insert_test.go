@@ -5,7 +5,7 @@ import (
 )
 
 func FuzzMillionKeys(f *testing.F) {
-	var tree BPlusTree
+	var tree BTree
 
 	for key := 1; key < 1_000_000; key++ {
 		f.Add(key)

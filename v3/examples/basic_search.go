@@ -2,15 +2,18 @@ package main
 
 import "fmt"
 
-type node struct {
+/*
+this basicSearch does not concern itself with the leaf data, only keys.
+type Node struct {
 	keys     []int
-	children []*node
-	// leaf node data --snipped
+	children []*Node
+	// leaf Node data --snipped
 }
+*/
 
-func (n *node) search(key int) *node {
+func (n *Node) basicSearch(key int) *Node {
 	if len(n.children) == 0 {
-		// you are at a leaf node and can now access stuff
+		// you are at a leaf Node and can now access stuff
 		// later when you add sibling pointers you can follow the next pointer
 		return n
 	}
@@ -33,25 +36,6 @@ func (n *node) search(key int) *node {
 	return n.children[low]
 }
 
-func BasicSearchExample(key int) {
-	root := &node{
-		keys: []int{3, 5},
-		children: []*node{
-			{
-				keys:     []int{2},
-				children: []*node{},
-			},
-			{
-				keys:     []int{4},
-				children: []*node{},
-			},
-			{
-				keys:     []int{6, 7},
-				children: []*node{},
-			},
-		},
-	}
-
-	result := root.search(key)
-	fmt.Println(result)
+func BasicSearchExample(t *BTree, key int) {
+	fmt.Println(t.root.basicSearch(key))
 }
