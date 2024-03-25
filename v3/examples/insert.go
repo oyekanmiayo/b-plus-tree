@@ -41,8 +41,6 @@ func (n *Node) insert(t *BTree, key int) error {
 	if n.kind == ROOT_NODE && len(n.children) == 0 {
 		n.data = append(n.data, key)
 		n.keys = append(n.keys, key)
-
-		slices.Sort(n.keys)
 	}
 
 	if n.kind == LEAF_NODE {

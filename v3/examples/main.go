@@ -62,6 +62,9 @@ func main() {
 		/// INSERT ////
 		///////////////
 		BasicInsertExample()
+
+
+		// NB: this examples assumes all keys and data are sorted or added monotonically
 		BasicInsertLeafExample()
 		//BreadcrumbInsertExample()
 		//RebalancingExample()
