@@ -74,6 +74,10 @@ func (n *Node) split(t *BTree, midIdx int) error {
 		n.parent.children = append(n.parent.children, newNode)
 		n.parent.keys = append(n.parent.keys, splitPoint)
 
+		// sibling pointers - only on leaf nodes
+		n.next = newNode
+		newNode.previous = n
+
 	case INTERNAL_NODE:
 		splitPoint := n.keys[midIdx]
 

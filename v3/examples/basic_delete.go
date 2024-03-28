@@ -31,7 +31,6 @@ func (n *Node) basicDelete(key int) error {
 	for i, k := range n.parent.keys {
 		if k == key {
 			n.parent.keys = splice(i, n.parent.keys)
-			n.parent.children = append(n.parent.children[:i], n.parent.children[i+1])
 		}
 	}
 
@@ -66,13 +65,11 @@ func (n *Node) SearchDelete(key int) (*Node, int, error) {
 }
 
 func BasicDeleteExample(tree *BTree) {
-	/*
-		fmt.Println("---initial tree shape---")
-		fmt.Println(tree.root)
-		fmt.Println(tree.root.children[0])
-		fmt.Println(tree.root.children[1])
-		fmt.Println(tree.root.children[2])
-	*/
+	fmt.Println("---initial tree shape---")
+	fmt.Println(tree.root)
+	fmt.Println(tree.root.children[0])
+	fmt.Println(tree.root.children[1])
+	fmt.Println(tree.root.children[2])
 
 	fmt.Println("---delete:4 no cascade---")
 	tree.BasicDelete(4)

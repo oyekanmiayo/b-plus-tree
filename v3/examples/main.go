@@ -23,6 +23,10 @@ type Node struct {
 	keys     []int
 	children []*Node
 	data     []int
+
+	// sibling pointers these help with deletions + range queries
+	next     *Node
+	previous *Node
 }
 
 func main() {
@@ -74,14 +78,16 @@ func main() {
 	///////////////
 	/// DELETE ////
 	//////////////
-	var exampleTreeOne BTree
+	//var exampleTreeOne BTree
 	var exampleTreeTwo BTree
 
-	for i := 1; i <= 4; i++ {
-		exampleTreeOne.Insert(i)
-	}
+	/*
+		for i := 1; i <= 4; i++ {
+			exampleTreeOne.Insert(i)
+		}
+	*/
 
-	for i := 1; i <= 8; i++ {
+	for i := 1; i <= 5; i++ {
 		exampleTreeTwo.Insert(i)
 	}
 

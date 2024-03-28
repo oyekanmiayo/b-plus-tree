@@ -118,15 +118,15 @@ func (t *BTree) RebalanceDelete(key int) error {
 		// find leaf node to delete
 		n, _, err := t.root.Search(key)
 		if err == nil {
-			return n.delete(t, key)
+			return n.delete(key)
 		}
 
 		return errors.New("key not in tree")
 	}
 }
 
-func (n *node) delete(t *BTree, key int) error {
-	if err := n.mergeSiblings(t, key); err == nil {
+func (n *node) delete(key int) error {
+	if err := n.mergeSiblings(key); err == nil {
 		return nil
 	}
 	return n.rebalanceDel(key)
@@ -152,7 +152,7 @@ func RebalancingDelete(tree *BTree) {
 	fmt.Println(tree.root.children[2])
 }
 
-func (n *node) mergeSiblings(t *BTree, key int) error {
+func (n *node) mergeSiblings(key int) error {
 	return nil
 }
 
