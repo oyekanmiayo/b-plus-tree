@@ -24,20 +24,20 @@ func (t *BTree) BasicDelete(key int) error {
 func (n *Node) basicDelete(key int) error {
 	for i, v := range n.data {
 		if v == key {
-			n.data = splice(i, n.data)
+			n.data = cut(i, n.data)
 		}
 	}
 
 	for i, k := range n.parent.keys {
 		if k == key {
-			n.parent.keys = splice(i, n.parent.keys)
+			n.parent.keys = cut(i, n.parent.keys)
 		}
 	}
 
 	return errors.New("see: merge.go for merges")
 }
 
-func splice(idx int, elems []int) []int {
+func cut(idx int, elems []int) []int {
 	if len(elems) == 1 {
 		return nil
 	} else {

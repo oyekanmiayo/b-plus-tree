@@ -5,6 +5,9 @@ import (
 	"fmt"
 )
 
+// Deletion is the most complicated operation for a B-Tree.
+// this covers part one, "merging"
+// see: https://opendatastructures.org/ods-python/14_2_B_Trees.html#SECTION001723000000000000000
 func (t *BTree) Delete(key int) error {
 	if t.root == nil {
 		return errors.New("empty tree")
@@ -22,7 +25,7 @@ func (t *BTree) Delete(key int) error {
 func (n *Node) delete(key int) error {
 	for i, v := range n.data {
 		if v == key {
-			n.data = splice(i, n.data)
+			n.data = cut(i, n.data)
 		}
 	}
 
@@ -50,7 +53,7 @@ func (n *Node) delete(key int) error {
 	// check tree invariants and recurse upward
 	for i, k := range n.parent.keys {
 		if k == key {
-			n.parent.keys = splice(i, n.parent.keys)
+			n.parent.keys = cut(i, n.parent.keys)
 			newSplit := len(n.data) / 2
 			n.parent.keys = append(n.parent.keys, n.data[newSplit])
 
@@ -82,6 +85,7 @@ eys are redistributed - rebalancing.go.
 
 // the actual merge operation
 // https://github.com/cockroachdb/pebble/blob/c4daad9128e053e496fa7916fda8b6df57256823/internal/manifest/btree.go#L620
+
 func (n *Node) mergeSibling(sibling *Node, key int) error {
 	if n.parent != sibling.parent {
 		panic("sibling invariant not satisfied")
@@ -99,7 +103,7 @@ func (n *Node) mergeSibling(sibling *Node, key int) error {
 
 		for i, k := range n.parent.keys {
 			if k == key {
-				n.parent.keys = splice(i, n.parent.keys)
+				n.parent.keys = cut(i, n.parent.keys)
 				newSplit := len(n.data) / 2
 
 				if len(n.data) != 0 {
