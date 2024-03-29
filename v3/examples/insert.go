@@ -62,6 +62,10 @@ func (n *Node) insert(t *BTree, key int) error {
 	return nil
 }
 
+/*
+see what a 'production' split looks like, the difference is night and day :)
+https://github.com/cockroachdb/pebble/blob/c4daad9128e053e496fa7916fda8b6df57256823/internal/manifest/btree.go#L403
+*/
 func (n *Node) split(t *BTree, midIdx int) error {
 	switch n.kind {
 	case LEAF_NODE:

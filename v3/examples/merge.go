@@ -71,6 +71,17 @@ func (n *Node) delete(key int) error {
 contents should be merged. if their contents do not fit into a single node
 eys are redistributed - rebalancing.go.
 */
+// merging can be... very interesting.
+// you can slap on an iter api like(rust):
+// https://github.com/rust-lang/rust/blob/1c19595575968ea77c7f85e97c67d44d8c0f9a68/library/alloc/src/collections/btree/merge_iter.rs#L41
+// and maybe... just maybe, stream/lift that iter out to a scheduler/async runtime -- complex, magical, do not do this, but neat to know.
+
+// go/pebble
+// iterator/cursor: https://github.com/cockroachdb/pebble/blob/c4daad9128e053e496fa7916fda8b6df57256823/internal/manifest/btree.go#L973 &&
+// https://github.com/cockroachdb/pebble/blob/c4daad9128e053e496fa7916fda8b6df57256823/internal/manifest/btree.go#L891
+
+// the actual merge operation
+// https://github.com/cockroachdb/pebble/blob/c4daad9128e053e496fa7916fda8b6df57256823/internal/manifest/btree.go#L620
 func (n *Node) mergeSibling(sibling *Node, key int) error {
 	if n.parent != sibling.parent {
 		panic("sibling invariant not satisfied")
