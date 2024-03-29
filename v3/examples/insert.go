@@ -93,6 +93,10 @@ func (n *Node) split(t *BTree, midIdx int) error {
 		n.parent.children = append(n.parent.children, newNode)
 		n.parent.keys = append(n.parent.keys, splitPoint)
 
+		/*
+			Notice that the splitting operation modifies three nodes.
+			 This is why it is important that the (internal) nodes of a B-tree DO NOT maintain parent pointers.
+		*/
 		// pointer relocation/bookkeeping
 		mid := len(n.children) / 2
 		leftPointers, rightPointers := n.children[:mid], n.children[mid:]
