@@ -9,10 +9,10 @@ import (
 /*
 type Node struct {
 	kind   NodeType
-	parent *Node
 	// we introduce the first convenience pointer (parent)
-	// considering all the pointer bookeeping we do and not need to traverse
-	// the old fashioned way
+	// consider the _cost_ of all the pointer bookeeping we pay
+	// for maintaining what could/should have been put on the callstack
+	parent *Node
 	keys     []int
 	children []*Node
 	data     []int

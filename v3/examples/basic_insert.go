@@ -67,7 +67,7 @@ func BasicInsertExample() {
 	//   (root)
 
 	// step three, check all children:
-	// recurse DOWN from root to new internal node(s), check that we're not full
+	// recurse UP from root to new internal node(s), check that we're not full
 	// if full, we split again on internal node, allocate a new node(s)
 
 	root := &BNode{kind: ROOT_NODE}
