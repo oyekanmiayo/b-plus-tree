@@ -1,11 +1,5 @@
 package main
 
-import (
-	"errors"
-	"fmt"
-	"slices"
-)
-
 /*
 // rebalance attempts to combine the node with sibling nodes if the node fill
 // size is below a threshold or if there are not enough keys.
@@ -111,6 +105,7 @@ func (n *node) rebalance() {
 }
 */
 
+/*
 func (t *BTree) RebalanceDelete(key int) error {
 	if t.root == nil {
 		return errors.New("empty tree")
@@ -175,3 +170,4 @@ func (n *node) search(key int) (*node, int, error) {
 
 	return n.children[idx].search(key)
 }
+*/

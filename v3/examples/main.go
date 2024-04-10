@@ -4,7 +4,7 @@ type NodeType int
 
 /* All examples share the same basic tree structure */
 const (
-	MAX_DEGREE = 3
+	MAX_DEGREE int = 3
 )
 
 const (
@@ -87,19 +87,23 @@ func main() {
 	///////////////
 	/// DELETE ////
 	//////////////
-	//var exampleTreeOne BTree
+	var exampleTreeOne BTree
 	var exampleTreeTwo BTree
+	var exampleTreeThree BTree
 
-	/*
-		for i := 1; i <= 4; i++ {
-			exampleTreeOne.Insert(i)
-		}
-	*/
+	for i := 1; i <= 4; i++ {
+		exampleTreeOne.Insert(i)
+	}
 
 	for i := 1; i <= 5; i++ {
 		exampleTreeTwo.Insert(i)
 	}
 
+	for i := 1; i <= 8; i++ {
+		exampleTreeThree.Insert(i)
+	}
+
 	// BasicDeleteExample(&exampleTreeOne)
-	MergeDeleteExample(&exampleTreeTwo)
+	//MergeDeleteExample(&exampleTreeTwo)
+	MergeDeleteExample(&exampleTreeThree)
 }

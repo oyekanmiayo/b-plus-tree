@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math"
 )
 
 // Deletion is the most complicated operation for a B-Tree.
@@ -16,24 +17,24 @@ func (t *BTree) Delete(key int) error {
 		n, _, err := t.root.SearchDelete(key)
 
 		if err == nil {
-			return n.delete(key)
+			return n.delete(t, key)
 		}
 
 		return errors.New("key not in tree")
 	}
 }
 
-func (n *Node) delete(key int) error {
+func (n *Node) delete(t *BTree, key int) error {
 	for i, v := range n.data {
 		if v == key {
 			n.data = cut(i, n.data)
 		}
 	}
 
-	// is the leaf empty? we delete key from parent & merge
-	if n.kind == LEAF_NODE && len(n.data) == 0 {
+	// is the leaf empty or underflown?
+	if n.kind == LEAF_NODE && len(n.data) < (MAX_DEGREE/2) {
 		if sibling, idx, err := n.preMerge(); err == nil {
-			return n.mergeSibling(sibling, idx, key)
+			return n.mergeSibling(t, sibling, idx, key)
 		} else {
 			return errors.New("see rebalancing.go")
 		}
@@ -46,24 +47,16 @@ func (n *Node) delete(key int) error {
 					n.parent.keys = cut(i, n.parent.keys)
 					newSeperator := len(n.data) / 2
 					n.parent.keys = append(n.parent.keys, n.data[newSeperator])
-
-					// overflow or underflow triggers a merge cascade recurse to parent
-					if len(n.parent.keys) < ((MAX_DEGREE-1)/2) || len(n.parent.keys) > MAX_DEGREE {
-						if sibling, idx, err := n.parent.preMerge(); err == nil {
-							return n.parent.mergeSibling(sibling, idx, key)
-						} else {
-							return errors.New("see rebalancing.go")
-						}
-					}
 				}
 			}
 		}
 	}
 
+	// underflow triggers a merge cascade recurse to parent
 	// recurse UPWARD and check invariants
 	if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
 		if sibling, idx, err := n.parent.preMerge(); err == nil {
-			return n.parent.mergeSibling(sibling, idx, key)
+			return n.parent.mergeSibling(t, sibling, idx, key)
 		} else {
 			return errors.New("see rebalancing.go")
 		}
@@ -89,34 +82,26 @@ func (n *Node) delete(key int) error {
 contents should be merged. if their contents do not fit into a single node
 else are redistributed - rebalancing.go.
 */
-func (n *Node) mergeSibling(sibling *Node, idx, key int) error {
-	if n.parent != sibling.parent {
-		panic("sibling invariant not satisfied")
-	}
-
+func (n *Node) mergeSibling(t *BTree, sibling *Node, idx, key int) error {
 	switch n.kind {
 	case LEAF_NODE:
+		assertCommonParent(n, sibling)
 		sibling.data = append(sibling.data, n.data...)
 
-		// deallocate
+		// deallocate/mark free current node
 		for i, node := range sibling.parent.children {
 			if node == n {
 				n.parent.children = append(n.parent.children[:i], n.parent.children[i+1:]...)
 			}
 		}
 
-		for i, k := range n.parent.keys {
+		for i, k := range sibling.parent.keys {
 			if k == key {
-				n.parent.keys = cut(i, n.parent.keys)
-				newSplit := len(n.data) / 2
+				sibling.parent.keys = cut(i, sibling.parent.keys)
 
-				if len(n.data) != 0 {
-					n.parent.keys = append(n.parent.keys, n.data[newSplit])
-				}
-
-				if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
-					if sibling, idx, err := n.parent.preMerge(); err == nil {
-						return n.parent.mergeSibling(sibling, idx, key)
+				if len(n.parent.keys) < int(math.Ceil(float64(MAX_DEGREE)/2)) {
+					if sibling, idx, err := sibling.parent.preMerge(); err == nil {
+						return n.parent.mergeSibling(t, sibling, idx, key)
 					} else {
 						return errors.New("see rebalancing.go")
 					}
@@ -125,21 +110,25 @@ func (n *Node) mergeSibling(sibling *Node, idx, key int) error {
 		}
 
 	case INTERNAL_NODE:
-		sibling.keys = append(sibling.keys, n.parent.keys...)
-		n.parent.children = append(n.parent.children[:idx], n.parent.children[idx+1:]...)
+		assertCommonParent(n, sibling)
 		sibling.keys = append(sibling.keys, n.keys...)
 		sibling.children = append(sibling.children, n.children...)
 
+		// mark n for deallocation
+		n.parent.children = append(n.parent.children[:idx+1], n.parent.children[idx+2:]...)
+
 		// recursive case
-		if len(n.parent.keys) < ((MAX_DEGREE - 1) / 2) {
+		if len(n.parent.children) < int(math.Ceil(float64(MAX_DEGREE)/2)) {
 			if sibling, idx, err := n.parent.preMerge(); err == nil {
-				return n.parent.mergeSibling(sibling, key, idx)
+				return n.parent.mergeSibling(t, sibling, key, idx)
 			} else {
 				return errors.New("see rebalancing.go")
 			}
 		}
 	case ROOT_NODE:
-		panic("todo: root cascade")
+		sibling.keys = append(sibling.keys, n.keys...)
+		sibling.kind = ROOT_NODE
+		t.root = sibling
 	}
 
 	return nil
@@ -151,6 +140,7 @@ func (n *Node) preMerge() (*Node, int, error) {
 	case INTERNAL_NODE:
 		// no sibling pointers so we have to go up to parent
 		// we check all our siblings if we can re-distribute
+
 		for i, sibling := range n.parent.children {
 			if n == sibling {
 				// cannot merge with self
@@ -178,22 +168,38 @@ func (n *Node) preMerge() (*Node, int, error) {
 				return n.next, 0, nil
 			}
 		}
-	default:
-		panic("operation not supported on root")
+
+	case ROOT_NODE:
+		// if len(n.keys)+len(n.children[0].keys) <= MAX_DEGREE {
+		// if underfull merge with first left child
+		return n.children[0], 0, nil
+
 	}
 
 	return nil, 0, errors.New("cannot merge with sibling")
 }
 
-func MergeDeleteExample(tree *BTree) {
+func MergeDelete(tree *BTree) {
 	// delete no cascade, just updates
 	tree.Delete(4)
 
-	// delete's causes consequetive cascade/merge to root
-	// tree.Delete(5)
+	// delete's causes consequetive cascade/merge all the way to root
+	tree.Delete(5)
+
+	fmt.Println(tree.root)
+}
+
+func MergeDeleteExample(tree *BTree) {
+	tree.Delete(4)
 
 	fmt.Println(tree.root)
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
+	//fmt.Println(tree.root.children[2])
+}
 
+func assertCommonParent(n, sibling *Node) {
+	if n.parent != sibling.parent {
+		panic("sibling invariant not satisfied")
+	}
 }
