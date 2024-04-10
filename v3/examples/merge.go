@@ -192,6 +192,12 @@ func MergeDelete(tree *BTree) {
 func MergeDeleteExample(tree *BTree) {
 	tree.Delete(4)
 
+	/*
+		NOTE: this example doesn't look 1:1
+		because the "steal" sibling optimisation is not implemented
+		and an underflow always forces a merge
+		see: rebalancing.go
+	*/
 	fmt.Println(tree.root)
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
