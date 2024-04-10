@@ -45,6 +45,14 @@ func cut(idx int, elems []int) []int {
 	}
 }
 
+func cutPointer(idx int, elems []*Node) []*Node {
+	if len(elems) == 1 {
+		return nil
+	} else {
+		return append(elems[:idx], elems[idx+1:]...)
+	}
+}
+
 // HELPERS
 func (n *Node) SearchDelete(key int) (*Node, int, error) {
 	idx, found := slices.BinarySearch(n.keys, key)
@@ -53,6 +61,10 @@ func (n *Node) SearchDelete(key int) (*Node, int, error) {
 		if n.kind == LEAF_NODE {
 			return n, idx, nil
 		} else {
+			if idx+1 >= len(n.children) {
+				return n.children[idx].SearchDelete(key)
+			}
+
 			return n.children[idx+1].SearchDelete(key)
 		}
 	}
