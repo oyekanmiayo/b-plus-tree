@@ -10,19 +10,6 @@ import (
 // this covers part one, "merging"
 // step one: find leaf node delete data
 // see: https://opendatastructures.org/ods-python/14_2_B_Trees.html#SECTION001723000000000000000
-func (t *BTree) Delete(key int) error {
-	if t.root == nil {
-		return errors.New("empty tree")
-	} else {
-		n, _, err := t.root.SearchDelete(key)
-
-		if err == nil {
-			return n.delete(t, key)
-		}
-
-		return errors.New("key not in tree")
-	}
-}
 
 func (n *Node) delete(t *BTree, key int) error {
 	for i, v := range n.data {

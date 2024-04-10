@@ -1,34 +1,5 @@
 package main
 
-type NodeType int
-
-/* All examples share the same basic tree structure */
-const (
-	MAX_DEGREE int = 3
-)
-
-const (
-	ROOT_NODE NodeType = iota + 1
-	INTERNAL_NODE
-	LEAF_NODE
-)
-
-type BTree struct {
-	root *Node
-}
-
-type Node struct {
-	kind     NodeType
-	parent   *Node
-	keys     []int
-	children []*Node
-	data     []int
-
-	// sibling pointers these help with deletions + range queries
-	next     *Node
-	previous *Node
-}
-
 // DISCLAIMER/NOTE:
 // this implementation is, an illustrative example, probably buggy -- I don't know how.
 // there are some unit tests, but not enough, there are probably hidden bugs. Bugs are candy for the mind anyway.

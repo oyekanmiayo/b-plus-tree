@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 )
@@ -18,24 +17,6 @@ type Node struct {
 	data     []int
 }
 */
-
-func (t *BTree) Insert(key int) error {
-	if t.root == nil {
-		t.root = &Node{kind: ROOT_NODE}
-		t.root.insert(t, key)
-
-		return nil
-	} else {
-		// find leaf node to insert into or root at first
-		n, _, err := t.root.Search(key)
-
-		if err == nil {
-			return errors.New("duplicate key/value")
-		}
-
-		return n.insert(t, key)
-	}
-}
 
 func (n *Node) insert(t *BTree, key int) error {
 	if n.kind == ROOT_NODE && len(n.children) == 0 {

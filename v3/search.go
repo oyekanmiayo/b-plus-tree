@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"slices"
 )
 
 /*
@@ -24,25 +22,6 @@ type InternalNode struct {
 
 NB: this example does not demonstrate sibling or parent pointers.
 */
-
-func (n *Node) Search(key int) (*Node, int, error) {
-	idx, found := slices.BinarySearch(n.keys, key)
-
-	if found {
-		if len(n.children) == 0 {
-			return n, idx, nil
-		} else {
-			return nil, 0, errors.ErrUnsupported
-		}
-
-	}
-
-	if len(n.children) == 0 {
-		return n, 0, errors.New("key not found, at leaf containing key")
-	}
-
-	return n.children[idx].Search(key)
-}
 
 func (n *Node) binSearchExplicit(key int) (*Node, int) {
 	if n.kind == LEAF_NODE {
