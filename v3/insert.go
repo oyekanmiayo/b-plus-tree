@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"slices"
 )
 
 /*
@@ -147,17 +146,4 @@ func BasicInsertLeafExample() {
 	fmt.Println(tree.root.children[0])
 	fmt.Println(tree.root.children[1])
 	fmt.Println(tree.root.children[2])
-}
-
-// public api for fuzzer
-func KeyExists(t *BTree, key int) bool {
-	n, _, err := t.root.Search(key)
-
-	if err != nil {
-		return false
-	}
-
-	_, found := slices.BinarySearch(n.data, key)
-
-	return found
 }

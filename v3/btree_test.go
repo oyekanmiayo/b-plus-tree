@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -13,7 +14,7 @@ func FuzzInsertKeys(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, key int) {
 		tree.Insert(key)
-		found := KeyExists(&tree, key)
+		found := keyExists(&tree, key)
 
 		if !found {
 			f.Failed()
@@ -60,4 +61,16 @@ func FuzzDeleteKeys(f *testing.F) {
 		}
 
 	})
+}
+
+func keyExists(t *BTree, key int) bool {
+	n, _, err := t.root.Search(key)
+
+	if err != nil {
+		return false
+	}
+
+	_, found := slices.BinarySearch(n.data, key)
+
+	return found
 }
