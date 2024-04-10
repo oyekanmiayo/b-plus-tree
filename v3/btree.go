@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"slices"
 )
 
 type NodeType int
@@ -34,23 +33,18 @@ type Node struct {
 	previous *Node
 }
 
-func (n *Node) Search(key int) (*Node, int, error) {
-	idx, found := slices.BinarySearch(n.keys, key)
+func (t *BTree) Search(key int) ([]int, int, error) {
+	if t.root == nil {
+		return nil, 0, errors.New("empty tree")
+	} else {
+		node, idx, err := t.root.Search(key)
 
-	if found {
-		if len(n.children) == 0 {
-			return n, idx, nil
+		if err == nil {
+			return nil, 0, errors.New("not found")
 		} else {
-			return nil, 0, errors.ErrUnsupported
+			return node.data, idx, nil
 		}
-
 	}
-
-	if len(n.children) == 0 {
-		return n, 0, errors.New("key not found, at leaf containing key")
-	}
-
-	return n.children[idx].Search(key)
 }
 
 func (t *BTree) Insert(key int) error {

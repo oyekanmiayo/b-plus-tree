@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // DISCLAIMER/NOTE:
 // this implementation is, an illustrative example, probably buggy -- I don't know how.
 // there are some unit tests, but not enough, there are probably hidden bugs. Bugs are candy for the mind anyway.
@@ -7,53 +9,43 @@ package main
 // poorly generic structs, append everywhere rather than considering copy
 // the garbage collection strategy is non-existent. There are no hints to the compiler/runtime.
 // is not thread-safe. lacks tests.
+// NB: these examples assumes all keys and data are sorted or added monotonically
 
 func main() {
-	/*
-		// the keys are: 1, 2, 3, 4, 5, 6, 7, 8
-		// the value of data on a node if supported by the example are the same as keys
+	// the keys are: 1, 2, 3, 4, 5, 6, 7, 8
+	// the value of data on a node if supported by the example are the same as keys
 
-		// this is a simple 2-way b-tree
-		// factoid: this is a 2-3 tree, B-Trees generalise BSTs, 2-3 Trees
-		// this example (may) break with a bigger degree
+	// this is a simple 2-way b-tree
+	// factoid: this is a 2-3 tree, B-Trees generalise BSTs, 2-3 Trees
+	// this example (may) break with a bigger degree
 
-		var exampleSearchOne BTree
-		var exampleSearchTwo BTree
+	var exampleSearchOne BTree
+	var exampleSearchTwo BTree
 
-		// prepopulate
-		for i := 1; i <= 8; i++ {
-			exampleSearchOne.Insert(i)
-			exampleSearchTwo.Insert(i)
-		}
+	// prepopulate
+	for i := 1; i <= 8; i++ {
+		exampleSearchOne.Insert(i)
+		exampleSearchTwo.Insert(i)
+	}
 
-		///////////////
-		/// SEARCH ////
-		///////////////
+	///////////////
+	/// SEARCH ////
+	///////////////
 
-		//these return values in the leaf, notice the n, n+1 relationship between keys and child pointers
+	//these return values in the leaf, notice the n, n+1 relationship between keys and child pointers
 
-		BasicSearchExample(&exampleSearchOne, 6)
-		BasicSearchLeaf(&exampleSearchTwo, 3)
-		BasicSearchLeaf(&exampleSearchTwo, 6)
-		BasicSearchLeaf(&exampleSearchTwo, 8)
+	// BasicSearchExample(&exampleSearchOne, 6)
+	// BasicSearchLeaf(&exampleSearchTwo, 3)
+	// BasicSearchLeaf(&exampleSearchTwo, 6)
+	// BasicSearchLeaf(&exampleSearchTwo, 8)
 
-		// returns the value of key 6, this is kind of a badly contrived example
-		// tldr; key 6 points to the value of 5
-		// because to get to the data 6, you'd need a key between 6 and 7
-		// to follow that pointer and get to 6
-
-		///////////////
-		/// INSERT ////
-		///////////////
-		BasicInsertExample()
-
-
-		// NB: this examples assumes all keys and data are sorted or added monotonically
-		BasicInsertLeafExample()
-		//BreadcrumbInsertExample()
-		//RebalancingExample()
-
-	*/
+	///////////////
+	/// INSERT ////
+	///////////////
+	// BasicInsertExample()
+	// BasicInsertLeafExample()
+	//BreadcrumbInsertExample()
+	//RebalancingExample()
 
 	///////////////
 	/// DELETE ////
@@ -75,6 +67,8 @@ func main() {
 	}
 
 	// BasicDeleteExample(&exampleTreeOne)
-	//MergeDeleteExample(&exampleTreeTwo)
-	MergeDeleteExample(&exampleTreeThree)
+	// MergeDeleteExample(&exampleTreeTwo)
+	// MergeDeleteExample(&exampleTreeThree)
+
+	fmt.Println("Uncomment in main.go to play with the examples!")
 }
