@@ -10,12 +10,15 @@ import (
 // this covers part one, "merging"
 // step one: find leaf node delete data
 // see: https://opendatastructures.org/ods-python/14_2_B_Trees.html#SECTION001723000000000000000
-
 func (n *Node) delete(t *BTree, key int) error {
 	for i, v := range n.data {
 		if v == key {
 			n.data = cut(i, n.data)
 		}
+	}
+
+	if n.kind == ROOT_NODE {
+		return nil
 	}
 
 	// is the leaf empty or underflown?

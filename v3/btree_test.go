@@ -42,7 +42,7 @@ func FuzzSearchKeys(f *testing.F) {
 func FuzzDeleteKeys(f *testing.F) {
 	var tree BTree
 
-	for key := 1; key <= 5; key++ {
+	for key := 1; key < 100; key++ {
 		f.Add(key)
 	}
 

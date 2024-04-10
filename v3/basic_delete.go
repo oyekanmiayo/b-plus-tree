@@ -61,7 +61,11 @@ func (n *Node) SearchDelete(key int) (*Node, int, error) {
 		if n.kind == LEAF_NODE {
 			return n, idx, nil
 		} else {
-			if idx+1 >= len(n.children) {
+			if len(n.children) == 0 {
+				return n, 0, nil
+			}
+
+			if idx+1 > len(n.children) {
 				return n.children[idx].SearchDelete(key)
 			}
 
