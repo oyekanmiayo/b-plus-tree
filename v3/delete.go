@@ -18,6 +18,7 @@ func (n *Node) delete(t *BTree, key int) error {
 	}
 
 	if n.kind == ROOT_NODE {
+		fmt.Println(n)
 		return nil
 	}
 
@@ -104,6 +105,8 @@ func (n *Node) mergeSibling(t *BTree, sibling *Node, idx, key int) error {
 		sibling.keys = append(sibling.keys, n.keys...)
 		sibling.children = append(sibling.children, n.children...)
 
+		// todo don't pass along idx
+		// TODO: fix this
 		// mark n for deallocation
 		n.parent.children = append(n.parent.children[:idx+1], n.parent.children[idx+2:]...)
 
@@ -181,7 +184,7 @@ func MergeDelete(tree *BTree) {
 
 func MergeDeleteExample(tree *BTree) {
 	tree.Delete(4)
-
+	tree.Delete(2)
 	/*
 		NOTE: this example doesn't look 1:1
 		because the "steal" sibling optimisation is not implemented

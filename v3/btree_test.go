@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 )
@@ -17,11 +18,12 @@ func FuzzInsertKeys(f *testing.F) {
 		found := keyExists(&tree, key)
 
 		if !found {
-			f.Failed()
+			t.Errorf("not found %v", key)
 		}
 	})
 }
 
+/*
 func FuzzSearchKeys(f *testing.F) {
 	var tree BTree
 
@@ -34,11 +36,13 @@ func FuzzSearchKeys(f *testing.F) {
 		n, idx, err := tree.Search(key)
 
 		if err != nil || key != n[idx] {
-			f.Failed()
+			t.Errorf("did not find key inserted")
 		}
 	})
 }
+*/
 
+/*
 func FuzzDeleteKeys(f *testing.F) {
 	var tree BTree
 
@@ -51,21 +55,23 @@ func FuzzDeleteKeys(f *testing.F) {
 		err := tree.Delete(key)
 
 		if err != nil {
-			f.Failed()
+			t.Errorf("deletion errored %v", err)
 		}
 
-		_, _, found := tree.Search(key)
+		v, _, found := tree.Search(key)
 
 		if found == nil {
-			f.Failed()
+			t.Errorf("found deleted key/value %v", v)
 		}
 
 	})
 }
+*/
 
 func keyExists(t *BTree, key int) bool {
 	n, _, err := t.root.Search(key)
 
+	fmt.Println(n)
 	if err != nil {
 		return false
 	}

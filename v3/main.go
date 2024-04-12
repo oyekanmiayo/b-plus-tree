@@ -66,9 +66,9 @@ func main() {
 		exampleTreeThree.Insert(i)
 	}
 
-	// BasicDeleteExample(&exampleTreeOne)
-	// MergeDeleteExample(&exampleTreeTwo)
-	// MergeDeleteExample(&exampleTreeThree)
+	//BasicDeleteExample(&exampleTreeOne)
+	// MergeDelete(&exampleTreeTwo)
+	MergeDeleteExample(&exampleTreeThree)
 
 	fmt.Println("Uncomment in main.go to play with the examples!")
 }
