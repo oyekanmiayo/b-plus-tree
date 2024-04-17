@@ -43,13 +43,10 @@ func (t *BTree) Search(key int) ([]int, int, error) {
 	if t.root == nil {
 		return nil, 0, errors.New("empty tree")
 	} else {
-		node, idx, err := t.root.Search(key)
+		node, idx, _ := t.root.Search(key)
 
-		if err == nil {
-			return nil, 0, errors.New("not found")
-		} else {
-			return node.data, idx, nil
-		}
+		return node.data, idx, nil
+
 	}
 }
 

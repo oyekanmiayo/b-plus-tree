@@ -44,8 +44,6 @@ func main() {
 	///////////////
 	// BasicInsertExample()
 	// BasicInsertLeafExample()
-	//BreadcrumbInsertExample()
-	//RebalancingExample()
 
 	///////////////
 	/// DELETE ////
@@ -66,9 +64,9 @@ func main() {
 		exampleTreeThree.Insert(i)
 	}
 
-	//BasicDeleteExample(&exampleTreeOne)
+	// BasicDeleteExample(&exampleTreeOne)
 	// MergeDelete(&exampleTreeTwo)
-	MergeDeleteExample(&exampleTreeThree)
+	//MergeDeleteExample(&exampleTreeThree)
 
 	fmt.Println("Uncomment in main.go to play with the examples!")
 }

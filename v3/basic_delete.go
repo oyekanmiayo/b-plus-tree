@@ -45,14 +45,6 @@ func cut(idx int, elems []int) []int {
 	}
 }
 
-func cutPointer(idx int, elems []*Node) []*Node {
-	if len(elems) == 1 {
-		return nil
-	} else {
-		return append(elems[:idx], elems[idx+1:]...)
-	}
-}
-
 // HELPERS
 func (n *Node) SearchDelete(key int) (*Node, int, error) {
 	idx, found := slices.BinarySearch(n.keys, key)

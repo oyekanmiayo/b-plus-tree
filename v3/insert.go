@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 )
 
 /*
@@ -26,6 +27,10 @@ func (n *Node) insert(t *BTree, key int) error {
 	if n.kind == LEAF_NODE {
 		n.data = append(n.data, key)
 	}
+
+	// simplicity/easy correctness, B-Trees should maintain order implicitly
+	slices.Sort(n.data)
+	slices.Sort(n.keys)
 
 	if len(n.data) < MAX_DEGREE {
 		return nil
