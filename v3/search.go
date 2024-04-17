@@ -68,8 +68,8 @@ func binarySearch(arr []int, key int) int {
 		}
 	}
 
-	// see for practice: https://leetcode.com/problems/binSearchExplicit-insert-position/
-	return low // where it would be or should be inserted
+	// see for practice: https://leetcode.com/problems/search-insert-position/description/
+	return low // where it would be or should be inserted (for insert)
 }
 
 func BasicSearchLeaf(tree *BTree, key int) {

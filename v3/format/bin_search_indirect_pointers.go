@@ -6,6 +6,7 @@ import (
 
 // remember a page is a contiguous block of memory [..|..|..|] that's say 4KiB.
 // we can arbitrarily decide what's inside this block, remember our header?
+// a simplified page/cell setup
 
 type page struct {
 	id     int
@@ -14,7 +15,8 @@ type page struct {
 }
 
 type cell struct {
-	page *page
+	key  []byte
+	data []byte
 }
 
 // recall our previous example, let's now use indirect pointers

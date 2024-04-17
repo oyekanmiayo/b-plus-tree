@@ -5,7 +5,7 @@ compression is a big topic but it does boil down to the
 trade-off between access speed and compression ratio
 
 It also matters what kind of database this is, analytical databases tend
-to store alot more data and compression is a little more amenable to the workload.
+to store alot more data and compression is a little more amenable to the workload/columnar format.
 */
 
 // there's not much to show/code here as most of the work goes on in the underlying library ie zstd or snappy.

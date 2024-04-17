@@ -78,7 +78,7 @@ func (n *Node) mergeSibling(t *BTree, sibling *Node, key int) error {
 		assertCommonParent(n, sibling)
 		sibling.data = append(sibling.data, n.data...)
 
-		// deallocate/mark free current node
+		// deallocate/collapse underflow node
 		for i, node := range sibling.parent.children {
 			if node == n {
 				n.parent.children = append(n.parent.children[:i], n.parent.children[i+1:]...)

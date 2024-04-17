@@ -22,13 +22,19 @@ type BTree struct {
 }
 
 type Node struct {
-	kind     NodeType
-	parent   *Node
+	kind   NodeType
+	parent *Node
+	// good enough for SQLite, good enough for me.
+	// Each entry in a table b-tree consists of a 64-bit signed integer
+	// key and up to 2147483647 bytes of arbitrary data.
+	// In RocksDB for e.g k/v are arbitrary byte sequences
 	keys     []int
 	children []*Node
 	data     []int
 
 	// sibling pointers these help with deletions + range queries
+	// right most pointer storage is implicit since this is an in-memory model
+	// this will look very differently when layed out for disk
 	next     *Node
 	previous *Node
 }
